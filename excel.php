@@ -2,7 +2,7 @@
 session_start();
 
 if(!empty($_POST['firstScrape'])){
-	session_destroy();
+	$_SESSION = [];
 }
 
 if(!empty($_POST["setSession"])){
