@@ -1,0 +1,6 @@
+{
+    "require": {
+        "league/csv": "^7.1",
+        "dompdf/dompdf" : "0.6.*"
+    }
+}

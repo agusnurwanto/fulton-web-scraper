@@ -1,0 +1,103 @@
+Project Description:
+
+Fulton Scraper:
+The most important thing is that the scraper be reliable. 
+If the scraper is not able to scrape something, it just needs to say “Error” on the excel spreadsheet and go on to the next one. 
+I will need you to be available to make corrections to it in the future (I can continue to pay you for reasonable charges to fix any problems along the way). 
+The scraper needs to be able to scrape 100,000 parcel numbers and hold all of the information listed below. 
+When you are done, each parcel ID will create a PDF of 1-the tax assessor’s page 2-the tax assessor’s map 3-the tax commissioner’s page 4-the solid waste page. 
+There will be an excel spreadsheet of all of the date scarped below. 
+There will be a searchable query where I can search for multiple fields.
+
+Go to:
+http://qpublic9.qpublic.net/ga_search_dw.php?county=ga_fulton
+Click on “Search by Parcel Number”
+Enter the Parcel Number (same as Parcel Identification Number or Parcel ID) that I give you from an excel spreadsheet of Parcel Identification Numbers
+Click on the Parcel Number that displays
+The scraper will need to create a PDF of this webpage.
+It will then need to scrape each variable on the page and enter it onto another excel spreadsheet.
+I will need the following variables scraped from this page and arranged on an excel spreadsheet in this order:
+-Parcel Number
+-Location Address
+-Land Value
+-Building Value
+-Total Value
+-YearBuilt
+-Square Feet
+-Bedrooms
+-Full Bath/Half Bath
+-Owner Name
+-Mailing Address
+-Property Class
+-Neighborhood
+-Today’s Date
+-Tax District
+-Zoning
+-Acres
+-Homestead
+-LUC
+-Class
+-Assessed Value
+-Land Type
+-Land Code
+-Descripton
+-Acreage
+-Price
+-Card
+-Stories
+-Exterior Wall
+-Style
+-Res Sq Ft
+-Total Rooms 
+Under Sale Information (just the most recent sale)
+-Sale Date
+-Sale Price
+-Instrument
+-Deed Book
+-Deed Page
+-Sale Qualification
+-Validity
+-Grantee
+-Grantor
+Then Click on Show Parcel Map and generate a PDF of that Page (the scraper may need to wait a moment to scrape the Map and I need to be able to change the amount of wait time)
+The scraper will then need to visit:
+https://www.fultoncountytaxes.org/property-taxes/search-for-tax-bill.aspx 
+-Click on Real Estate button next to Number One
+-Click on Parcel ID button next to Number Two
+-Enter the Parcel ID in field number 3
+-Click Search
+-Click on the Parcel ID
+-Generate a PDF of this webpage
+-Scrape the info for each tax year 
+	(
+		i.e. for parcel number 14 011800080127, 
+		one of the field at the top of the excel spreadsheet will be 2015 Atlanta Principal Amount and the amount in the field will be 423.93. 
+		Then the next field will be 2015 Atlanta Interest and the amount will be 0.00, 
+		and then 2015 Atlanta Penalties/Fees will be 0.00 and then 2015 Atlanta Paid will be 423.93 and then 2015 Atlanta Total will be 0.00. 
+		The scraper will then go to the next line 2015 County Principal amount will be 140.40 and so on and so forth until there are no more rows.
+	) 
+The scraper will then need to visit:
+
+Additional Project Description:
+
+11/09/2015 at 20:08 WIB 
+https://www.fultoncountytaxes.org/solid-waste.aspx 
+-Click on Search for a Solid Waste bill
+-Click on Parcel ID next to Number 1
+-Enter the parcel ID into Number 2
+The scraper will need to generate a PDF of this webpage and then scrape the info for each tax year 
+(	i.e. for parcel number 14 011800080127, 
+	create a column on the excel spreadsheet that says 2015 Original Amount will be 468.19, 
+	2015 Exemption will be 0.00, 
+	2015 Interest will be 0.00, 
+	2015 Penalty/Fees will be 0.00, 
+	2015 Paid will be 468.19, 
+	2015 Amount Due will be 0.00, 
+	2015 Last Payment will be 9/14/2015
+) 
+Continue to go through until there are no more rows). 
+
+Once done, the scraper will need to generate a filter/query by which I can search based on the values in each field. 
+For example, 
+I need to be able to search for properties that have more than 3 bedrooms and an assessed value over 100,000 and a 2015 Atlanta Total over 0.00. 
+All of the fields need to be searchable. If you can’t for some reason, let me know why

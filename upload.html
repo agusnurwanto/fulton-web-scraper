@@ -1,0 +1,351 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Fulton Scraper</title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+	<!-- production -->
+	<script type="text/javascript" src="plupload/js/plupload.full.min.js"></script>
+	<style>
+		#console{
+			display: none;
+		    width: 100%;
+		    height: 100%;
+		    position: fixed;
+		    z-index: 111;
+		    background: rgba(187, 187, 187, 0.4);
+		    top: 0px;
+		    left: 0;
+		}
+		#console .title{
+		    margin-top: 50px;
+		    font-size: 32px;
+		    font-weight: bold;
+		    color: #333;
+		    text-align: center;
+		}
+		div#data{
+		    overflow: auto;
+		    width: 100%;
+		    height: 400px;
+		}
+		#excel{ font-size: 18px; }
+		body{ font-family: sans-serif; }
+	</style>
+</head>
+<body>
+	<ol id="filelist">
+		<li>Save As your .xls data to .csv file.</li>
+		<li>Select your CSV file.</li>
+		<li>The script will be automate to scrape data by KEY from CSV file.</li>
+		<li>Please waiting when run scrape process.</li>
+	</ol>
+	<br />
+	<div id="container">
+	    <a id="pickfiles" href="javascript:;">[Select files]</a>
+	</div>
+	<div id="console"></div>
+	<script type="text/javascript">
+		// Initialize the widget when the DOM is ready
+		var uploader = new plupload.Uploader({
+			runtimes : 'html5,flash,silverlight,html4',
+			browse_button : 'pickfiles',
+			container: document.getElementById('container'),
+			url : 'readCsv.php',
+			filters : {
+				max_file_size : '10mb',
+				mime_types: [
+					{title : "CSV Files", extensions : "csv"}
+				]
+			},
+			flash_swf_url : 'plupload/js/Moxie.swf',
+			silverlight_xap_url : 'plupload/js/Moxie.xap',
+			multipart: true,
+			multipart_params: {
+				action: "csv_upload"
+			},
+			file_data_name: "async-upload",
+			init : {
+				FilesAdded: function(up, files) {
+					$('#console').show();
+					$('#console').html('<div class="title">Reading the CSV File.</div>');
+		        	up.refresh();
+		        	up.start();
+				},
+				FileUploaded: function(up, file, response) {
+					window.allData = {};
+					allData.fultonPage = {};
+					allData.fultonTaxes = {};
+					allData.fultonWaste = {};
+					allData.fultonPdf = {};
+					var res = JSON.parse(response.response);
+					if(res.error!="1"){
+						window.allKey = res.msg;
+						$('#console').html('<div class="title">Total key is: '+allKey.length+' <br>Start to Scrape.<br>Please Waiting!</div><div id="data"><table><thead></thead><tbody></tbody></table></div>');
+						var i = j = 0;
+						allKey.reduce(function(sequence, key) {
+						  	return sequence.then(function() {
+								if((i+1)%2==0){
+									$('#console .title').html('Total key is: '+allKey.length+' <br>Proses '+i+' Scrape. <a href="excel.php" target="blank" id="excel">Show on excel!</a><br>Please Waiting!');
+								}
+							    return getPage(key[1]);
+						  	})
+						  	.then(function(res){
+						  		return new Promise(function(resolve, reject){
+							  		parsingData($.parseHTML(res.msg["fulton page"].replace(/<img[^>]*>/g,"")))
+								  		.then(function(data){
+								  			allData.fultonPage[j] = data;
+								  			allData.fultonPdf[j] = res.msg.pdf;
+								  			return resolve(res);
+								  		});
+								});
+						  	})
+						  	.then(function(res){
+						  		return new Promise(function(resolve, reject){
+							  		parsingDataTaxes($.parseHTML(res.msg["fulton taxes"].replace(/<img[^>]*>/g,"")))
+							  			.then(function(data){
+							  				allData.fultonTaxes[j] = data;
+							  				return resolve(res);
+							  			})
+							  	});
+						  	})
+						  	.then(function(res){
+						  		return new Promise(function(resolve, reject){
+							  		parsingDataWaste($.parseHTML(res.msg["fulton waste"].replace(/<img[^>]*>/g,"")))
+							  			.then(function(data){
+							  				allData.fultonWaste[j] = data;
+							  				if(i==0){
+							  					addDataToTable(i, true);
+							  					addDataToSession(i, true);
+							  				}else{
+							  					addDataToTable(i);
+							  					addDataToSession(i);
+							  				}
+									  		j++;
+									  		i++;
+									  		if(i>=(allKey.length-1)){
+										    	return resolve(finishScrape());
+									  		}
+									  		return resolve(res);
+							  			})
+							  	});
+						  	})
+						  	.catch(function(err){
+						  		console.log(err.stack);
+						  		i++;
+						  		return Promise.reject(err);
+						  	})
+						}, Promise.resolve());
+					}else{
+						alert(res.msg);
+						console.log(res);
+					}
+				}
+			},
+		});
+		uploader.init();
+
+		function getPage(key){
+			key = key.match(/\d/g);
+			key[1] = key[1]+' ';
+			key = key.join("");
+			return new Promise(function(resolve, reject){
+				$.ajax({
+				    url:"scrape.php",  
+				    type: "POST",
+    				data: "getDetail=true&key="+key,
+    				dataType: "JSON",
+				    success:function(data) {
+				    	if(data.error!="1"){
+				      		return resolve(data);
+				      	}else{
+				      		return reject(data);
+				      	}
+				    }
+			  	});
+			})
+			.catch(function(err){
+				console.log(err.stack);
+				return Promise.reject();
+			});
+		}
+
+		function parsingData(html){
+			return new Promise(function(resolve, reject){
+				var tableParcel = $('table.table_class', html).eq(2);
+				var tableAssessment = $('table.table_class', html).eq(3);
+				var tableImprovement = $('table.table_class', html).eq(5);
+				var tableLand = $('table.table_class', html).eq(4);
+				var tableSale = $('table.table_class', html).eq(7);
+				var data = {};
+
+				data["Parcel Number"] = tableParcel.find('tr').eq(2).find('td').eq(3).text().trim();
+				data["Location Address"] = tableParcel.find('tr').eq(4).find('td').eq(1).text().trim();
+				data["Land Value"] = tableAssessment.find('tr').eq(2).find('td').eq(3).text().trim().replace(/\ /g,'');
+				data["Building Value"] = tableAssessment.find('tr').eq(2).find('td').eq(4).text().trim().replace(/\ /g,'');
+				data["Total Value"] = tableAssessment.find('tr').eq(2).find('td').eq(5).text().trim().replace(/\ /g,'');
+				data["YearBuilt"] = tableImprovement.find('tr').eq(2).find('td').eq(4).text().trim();
+				data["Square Feet"] = tableLand.find('tr').eq(2).find('td').eq(3).text().trim();
+				data["Bedrooms"] = tableImprovement.eq(5).find('tr').eq(4).find('td').eq(3).text().trim();
+				data["Full Bath/Half Bath"] = tableImprovement.eq(5).find('tr').eq(4).find('td').eq(4).text().trim();
+				data["Owner Name"] = tableParcel.find('tr').eq(1).find('td').eq(1).text().trim();
+				data["Mailing Address"] = tableParcel.find('tr').eq(2).find('td').eq(1).text().trim()
+					+' | '+tableParcel.find('tr').eq(3).find('td').eq(1).text().trim();
+				data["Property Class"] = tableParcel.find('tr').eq(6).find('td').eq(1).text().trim();
+				data["Neighborhood"] = tableParcel.find('tr').eq(7).find('td').eq(1).text().trim();
+				data["Today’s Date"] = tableParcel.find('tr').eq(1).find('td').eq(3).text().trim();
+				data["Tax District"] = tableParcel.find('tr').eq(3).find('td').eq(3).text().trim();
+				data["Zoning"] = tableParcel.find('tr').eq(4).find('td').eq(3).text().trim();
+				data["Acres"] = tableParcel.find('tr').eq(5).find('td').eq(3).text().trim();
+				data["Homestead"] = tableParcel.find('tr').eq(7).find('td').eq(3).text().trim();
+				data["LUC"] = tableAssessment.find('tr').eq(2).find('td').eq(1).text().trim();
+				data["Class"] = tableAssessment.find('tr').eq(2).find('td').eq(2).text().trim();
+				data["Assessed Value"] = tableAssessment.find('tr').eq(2).find('td').eq(6).text().trim().replace(/\ /g,'');
+				data["Land Type"] = tableLand.find('tr').eq(2).find('td').eq(0).text().trim();
+				data["Land Code"] = tableLand.find('tr').eq(2).find('td').eq(1).text().trim();
+				data["Descripton"] = tableLand.find('tr').eq(2).find('td').eq(2).text().trim();
+				data["Acreage"] = tableLand.find('tr').eq(2).find('td').eq(4).text().trim();
+				data["Price"] = tableLand.find('tr').eq(2).find('td').eq(5).text().trim().replace(/\ /g,'');
+				data["Card"] = tableImprovement.find('tr').eq(2).find('td').eq(0).text().trim();
+				data["Stories"] = tableImprovement.find('tr').eq(2).find('td').eq(1).text().trim();
+				data["Exterior Wall"] = tableImprovement.find('tr').eq(2).find('td').eq(2).text().trim();
+				data["Style"] = tableImprovement.find('tr').eq(2).find('td').eq(3).text().trim();
+				data["Res Sq Ft"] = tableImprovement.find('tr').eq(2).find('td').eq(5).text().trim();
+				data["Total Rooms"] = tableImprovement.find('tr').eq(4).find('td').eq(2).text().trim();
+				
+				// Under Sale Information (just the most recent sale)
+				data["Sale Date"] = tableSale.find('tr').eq(2).find('td').eq(0).text().trim();
+				data["Sale Price"] = tableSale.find('tr').eq(2).find('td').eq(1).text().trim();
+				data["Instrument"] = tableSale.find('tr').eq(2).find('td').eq(2).text().trim();
+				data["Deed Book"] = tableSale.find('tr').eq(2).find('td').eq(3).text().trim();
+				data["Deed Page"] = tableSale.find('tr').eq(2).find('td').eq(4).text().trim();
+				data["Sale Qualification"] = tableSale.find('tr').eq(2).find('td').eq(5).text().trim();
+				data["Validity"] = tableSale.find('tr').eq(2).find('td').eq(6).text().trim();
+				data["Grantee"] = tableSale.find('tr').eq(2).find('td').eq(7).text().trim();
+				data["Grantor"] = tableSale.find('tr').eq(2).find('td').eq(8).text().trim();
+
+				return resolve(data);
+			})
+			.catch(function(err){
+				console.log(err.stack);
+				return Promise.reject();
+			});
+		}
+
+		function parsingDataTaxes(html){
+			return new Promise(function(resolve, reject){
+				var trDetail = $('.webGridDetail tbody tr');
+				var data = {};
+				var keys = ["Principal Amount", "Interest", "Penalties/Fees", "Paid", "Total"];
+				trDetail.each(function(i, body){
+					year = $(body).find('td').eq(0).text().trim() || year;
+					var key = year+' '+$(body).find('td').eq(1).text().trim();
+					var tdDetail = $(body).find('td');
+					tdDetail.each(function(j, dt){
+						if(j>1){
+							var newKey = key+' '+keys[j-2];
+							data[newKey] = $(dt).text().trim();
+						}
+					});
+				});
+				return resolve(data);
+			})
+			.catch(function(err){
+				console.log(err.stack);
+				return Promise.reject();
+			});
+		}
+
+		function parsingDataWaste(html){
+			return new Promise(function(resolve, reject){
+				var trDetail = $('.webGridDetailSW tbody tr');
+				var data = {};
+				var keys = ["Original Amount", "Exemption", "Interest", "Penalties/Fees", "Paid", "Amount Due", "Last Payment"];
+				trDetail.each(function(i, body){
+					year = $(body).find('td').eq(0).text().trim() || year;
+					var key = year;
+					var tdDetail = $(body).find('td');
+					tdDetail.each(function(j, dt){
+						if(j>0){
+							var newKey = key+' '+keys[j-1];
+							data[newKey] = $(dt).text().trim();
+						}
+					});
+				});
+				return resolve(data);
+			})
+			.catch(function(err){
+				console.log(err.stack);
+				return Promise.reject();
+			});
+		}
+
+		function finishScrape(){
+			$('#console .title').html('Process 100%. Finish :)');
+			setTimeout(function(){ $('#console').hide(); }, 5000);
+		}
+
+		function addDataToTable(j, cekHeader){
+			if(cekHeader){
+				var header = "<tr>";
+				header += "<th>No</th>";
+				for(var i in allData.fultonPage[j]){ 
+					header += "<th>"+i+"</th>";
+				};
+				for(var i in allData.fultonTaxes[j]){ 
+					header += "<th>"+i+"</th>";
+				};
+				for(var i in allData.fultonWaste[j]){ 
+					header += "<th>"+i+"</th>";
+				};
+				header += "<th>Url PDF</th>";
+				header += "</tr>";
+				$('#data table thead').html(header);
+			}
+			var content = "<tr>";
+			content += "<td>"+(j+1)+"</td>";
+			for(var i in allData.fultonPage[j]){ 
+				content += "<td>"+allData.fultonPage[j][i]+"</td>";
+			};
+			for(var i in allData.fultonTaxes[j]){ 
+				content += "<td>"+allData.fultonTaxes[j][i]+"</td>";
+			};
+			for(var i in allData.fultonWaste[j]){ 
+				content += "<td>"+allData.fultonWaste[j][i]+"</td>";
+			};
+			content += "<td>"+allData.fultonPdf[j]+"</td>";
+			content += "</tr>";
+			$('#data table tbody').append(content);
+		}
+
+		function addDataToSession(j, firstScrape){
+			var param = "setSession=true&key="+j;
+			for(var i in allData.fultonPage[j]){ 
+				param += "&"+encodeURIComponent(i)+"="+encodeURIComponent(allData.fultonPage[j][i]);
+			};
+			for(var i in allData.fultonTaxes[j]){ 
+				param += "&"+encodeURIComponent(i)+"="+encodeURIComponent(allData.fultonTaxes[j][i]);
+			};
+			for(var i in allData.fultonWaste[j]){ 
+				param += "&"+encodeURIComponent(i)+"="+encodeURIComponent(allData.fultonWaste[j][i]);
+			};
+			param += "&"+encodeURIComponent("Url PDF")+"="+encodeURIComponent(allData.fultonPdf[j]);
+			if(firstScrape){
+				param += "&firstScrape=true";
+			}
+			$.ajax({
+			    url:"excel.php",  
+			    type: "POST",
+				data: param,
+				dataType: "JSON",
+			    success:function(data) {
+			    	if(data.error!="1"){
+			      		return resolve(data);
+			      	}else{
+			      		return reject(data);
+			      	}
+			    }
+		  	});
+		}
+	</script>
+</body>
+</html>
