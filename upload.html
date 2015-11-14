@@ -12,7 +12,7 @@
 		    height: 100%;
 		    position: fixed;
 		    z-index: 111;
-		    background: rgba(187, 187, 187, 0.4);
+		    background: rgba(245, 245, 245, 0.9);
 		    top: 0px;
 		    left: 0;
 		}
@@ -42,15 +42,28 @@
 	</ol>
 	<br />
 	<div id="container">
-	    <a id="pickfiles" href="javascript:;">[Select files]</a>
+	    <a id="pickfiles" href="javascript:;" style="display:none;">[Select files]</a>
+	    <a onclick="readCsv();" href="javascript:;">[Start Fulton Scrape]</a>
 	</div>
 	<h2>Changelog</h2>
 	<ul>
-		<li>Update 14 Nov 2015: fix read csv (update logic to read fixed csv file).</li>
+		<li>
+			Update 14 Nov 2015 : 
+			<ul>
+				<li>fix read csv (update logic to read fixed csv file).</li>
+				<li>change upload to onclick action.</li>
+			</ul>
+		</li>
 	</ul>
 	<div id="console"></div>
 	<div id="footer">Develop by <a href="http://agus.pondokprogrammer.com" target="blank">Agus Nurwanto</a>.</div>
 	<script type="text/javascript">
+		window.allData = {};
+		allData.fultonPage = {};
+		allData.fultonTaxes = {};
+		allData.fultonWaste = {};
+		allData.fultonPdf = {};
+
 		// Initialize the widget when the DOM is ready
 		var uploader = new plupload.Uploader({
 			runtimes : 'html5,flash,silverlight,html4',
@@ -67,7 +80,7 @@
 			silverlight_xap_url : 'plupload/js/Moxie.xap',
 			multipart: true,
 			multipart_params: {
-				action: "csv_upload"
+				action: "read_csv"
 			},
 			file_data_name: "async-upload",
 			init : {
@@ -78,69 +91,10 @@
 		        	up.start();
 				},
 				FileUploaded: function(up, file, response) {
-					window.allData = {};
-					allData.fultonPage = {};
-					allData.fultonTaxes = {};
-					allData.fultonWaste = {};
-					allData.fultonPdf = {};
 					var res = JSON.parse(response.response);
 					if(res.error!="1"){
 						window.allKey = res.msg;
-						$('#console').html('<div class="title">Total key is: '+allKey.length+' <br>Start to Scrape.<br>Please Waiting!</div><div id="data"><table><thead></thead><tbody></tbody></table></div>');
-						var i = j = 0;
-						allKey.reduce(function(sequence, key) {
-						  	return sequence.then(function() {
-								if((i+1)%2==0){
-									$('#console .title').html('Total key is: '+allKey.length+' <br>Proses '+i+' Scrape. <a href="excel.php" target="blank" id="excel">Show on excel!</a><br>Please Waiting!');
-								}
-							    return getPage(key[1]);
-						  	})
-						  	.then(function(res){
-						  		return new Promise(function(resolve, reject){
-							  		parsingData($.parseHTML(res.msg["fulton page"].replace(/<img[^>]*>/g,"")))
-								  		.then(function(data){
-								  			allData.fultonPage[j] = data;
-								  			allData.fultonPdf[j] = res.msg.pdf;
-								  			return resolve(res);
-								  		});
-								});
-						  	})
-						  	.then(function(res){
-						  		return new Promise(function(resolve, reject){
-							  		parsingDataTaxes($.parseHTML(res.msg["fulton taxes"].replace(/<img[^>]*>/g,"")))
-							  			.then(function(data){
-							  				allData.fultonTaxes[j] = data;
-							  				return resolve(res);
-							  			})
-							  	});
-						  	})
-						  	.then(function(res){
-						  		return new Promise(function(resolve, reject){
-							  		parsingDataWaste($.parseHTML(res.msg["fulton waste"].replace(/<img[^>]*>/g,"")))
-							  			.then(function(data){
-							  				allData.fultonWaste[j] = data;
-							  				if(i==0){
-							  					addDataToTable(i, true);
-							  					addDataToSession(i, true);
-							  				}else{
-							  					addDataToTable(i);
-							  					addDataToSession(i);
-							  				}
-									  		j++;
-									  		i++;
-									  		if(i>=(allKey.length-1)){
-										    	return resolve(finishScrape());
-									  		}
-									  		return resolve(res);
-							  			})
-							  	});
-						  	})
-						  	.catch(function(err){
-						  		console.log(err.stack);
-						  		i++;
-						  		return Promise.reject(err);
-						  	})
-						}, Promise.resolve());
+						startScrape();
 					}else{
 						alert(res.msg);
 						console.log(res);
@@ -149,6 +103,83 @@
 			},
 		});
 		uploader.init();
+
+		function readCsv(){
+			$('#console').show();
+			$('#console').html('<div class="title">Reading the CSV File.</div>');
+			$.ajax({
+			    url:"readCsv.php",  
+			    type: "POST",
+				data: "action=read_csv",
+				dataType: "JSON",
+			    success:function(res) {
+			    	if(res.error!="1"){
+						window.allKey = res.msg;
+			      		return startScrape();
+			      	}else{
+			      		return console.log(res);
+			      	}
+			    }
+		  	});
+		}
+
+		function startScrape(){
+			$('#console').html('<div class="title">Total key is: '+allKey.length+' <br>Start to Scrape.<br>Please Waiting!</div><div id="data"><table><thead></thead><tbody></tbody></table></div>');
+			var i = j = 0;
+			allKey.reduce(function(sequence, key) {
+			  	return sequence.then(function() {
+					if((i+1)%2==0){
+						$('#console .title').html('Total key is: '+allKey.length+' <br>Proses '+i+' Scrape. <a href="excel.php" target="blank" id="excel">Show on excel!</a><br>Please Waiting!');
+					}
+				    return getPage(key[1]);
+			  	})
+			  	.then(function(res){
+			  		return new Promise(function(resolve, reject){
+				  		parsingData($.parseHTML(res.msg["fulton page"].replace(/<img[^>]*>/g,"")))
+					  		.then(function(data){
+					  			allData.fultonPage[j] = data;
+					  			allData.fultonPdf[j] = res.msg.pdf;
+					  			return resolve(res);
+					  		});
+					});
+			  	})
+			  	.then(function(res){
+			  		return new Promise(function(resolve, reject){
+				  		parsingDataTaxes($.parseHTML(res.msg["fulton taxes"].replace(/<img[^>]*>/g,"")))
+				  			.then(function(data){
+				  				allData.fultonTaxes[j] = data;
+				  				return resolve(res);
+				  			})
+				  	});
+			  	})
+			  	.then(function(res){
+			  		return new Promise(function(resolve, reject){
+				  		parsingDataWaste($.parseHTML(res.msg["fulton waste"].replace(/<img[^>]*>/g,"")))
+				  			.then(function(data){
+				  				allData.fultonWaste[j] = data;
+				  				if(i==0){
+				  					addDataToTable(i, true);
+				  					addDataToSession(i, true);
+				  				}else{
+				  					addDataToTable(i);
+				  					addDataToSession(i);
+				  				}
+						  		j++;
+						  		i++;
+						  		if(i>=(allKey.length-1)){
+							    	return resolve(finishScrape());
+						  		}
+						  		return resolve(res);
+				  			})
+				  	});
+			  	})
+			  	.catch(function(err){
+			  		console.log(err.stack);
+			  		i++;
+			  		return Promise.reject(err);
+			  	})
+			}, Promise.resolve());
+		}
 
 		function getPage(key){
 			key = key.match(/\d/g);

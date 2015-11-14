@@ -7,8 +7,8 @@ use League\Csv\Reader;
 // die();
 
 $res = array( "error" => 0 );
-if(!empty($_FILES) && $_FILES['async-upload']["type"]=="text/csv"){
-	$file = handle_upload( $_FILES['async-upload'] );
+if((!empty($_POST['action']) && $_POST['action']=="read_csv") || (!empty($_FILES) && $_FILES['async-upload']["type"]=="text/csv")){
+	$file = handle_upload();
 	if(empty($file["error"])){
 		$csv = Reader::createFromPath($file["file"]);
 		$res["msg"] = $csv->setOffset(1)->fetchAll();
