@@ -36,6 +36,7 @@
 	<h1>Fulton Scraper</h1>
 	<ol id="filelist">
 		<li><a href="Project Description.txt" target="blank">Project Description</a>.</li>
+		<li><a href="https://fultonscraper.herokuapp.com/" target="blank">Demo Fulton Scraper</a>.</li>
 		<li>Save As your .xls data to .csv file. For example, you can download <a href="Fulton Excel Input.xlsx" target="blank">this file</a>.</li>
 		<li>Select your CSV file. For example, you can download <a href="Fulton.csv" target="blank">this file</a>.</li>
 		<li>The script will be automate to scrape data by KEY from CSV file.</li>
@@ -43,8 +44,8 @@
 	</ol>
 	<br />
 	<div id="container">
-	    <a id="pickfiles" href="javascript:;" style="display:none;">[Select files]</a>
-	    <a onclick="readCsv();" href="javascript:;">[Start Fulton Scrape]</a>
+	    <a id="pickfiles" href="javascript:;" style="display:block;">[Select files]</a>
+	    <a onclick="readCsv();" href="javascript:;" style="display:none;">[Start Fulton Scrape]</a>
 	</div>
 	<h2>Changelog</h2>
 	<ul>
@@ -59,7 +60,8 @@
 			Update 16 Nov 2015 : 
 			<ul>
 				<li>Fix Bedrooms Full Bath/Half Bath missing.</li>
-				<li>Add link to Project Description.</li>
+				<li>Add link to Project Description and demo page.</li>
+				<li>Allow user to upload CSV file.</li>
 			</ul>
 		</li>
 	</ul>

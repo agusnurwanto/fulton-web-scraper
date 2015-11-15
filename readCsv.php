@@ -7,7 +7,8 @@ use League\Csv\Reader;
 // die();
 
 $res = array( "error" => 0 );
-if((!empty($_POST['action']) && $_POST['action']=="read_csv") || (!empty($_FILES) && $_FILES['async-upload']["type"]=="text/csv")){
+if((!empty($_POST['action']) && $_POST['action']=="read_csv") 
+	|| (!empty($_FILES) && $_FILES['async-upload']["type"]=="text/csv")){
 	$file = handle_upload();
 	if(empty($file["error"])){
 		$csv = Reader::createFromPath($file["file"]);
@@ -17,14 +18,15 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv") || (!empty($_FILES
 	}
 }else{
 	$res["error"] = 1;
+	$res["msg"] = $_FILES;
 }
 
 function handle_upload(){
 	$res = array("error" => 0);
 	
 	// fix error upload;
-	$res["file"] = __DIR__.'/Fulton.csv';
-	return $res;
+	// $res["file"] = __DIR__.'/Fulton.csv';
+	// return $res;
 
 	try {
 	    if (!isset($_FILES['async-upload']['error']) || is_array($_FILES['async-upload']['error'])) {
