@@ -101,3 +101,13 @@ Once done, the scraper will need to generate a filter/query by which I can searc
 For example, 
 I need to be able to search for properties that have more than 3 bedrooms and an assessed value over 100,000 and a 2015 Atlanta Total over 0.00. 
 All of the fields need to be searchable. If you can’t for some reason, let me know why
+
+Doing a good job so far! Couple things I noticed that needed to be changed:
+	1.The scraper seems to be scraping each parcel twice. When I open up the excel sheet, every parcel is listed twice. Each parcel only needs to be listed once.
+	2. The scraper needs to scrape the Tax Assessor's website also. (I mean it needs to create a link to the PDF like you did for the Tax Commissioner property tax bills.)
+	3. Need to create a PDF link for the Solid Waste Bill like you did for the Tax Commissioner bill.
+	4. Needs to scrape the bill amounts for each year on the Property tax bill and add to the excel sheet.
+	5. Incorporate proxies into the program.
+	6. I will need to be able to upload the parcel IDs that I want scraped.
+
+So you know, the file that I need scraped ended up being 125,000 parcels.
