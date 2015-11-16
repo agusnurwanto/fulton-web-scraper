@@ -24,7 +24,7 @@ if(empty($_POST['getDetail'])){
 	$pdfFultonPage = $url."_pdfFultonPage.html";
 	$pdfFultonTaxes = $url."_pdfFultonTaxes.pdf";
 	$pdfFultonWaste = $url."_pdfFultonWaste.pdf";
-	$res["msg"]["pdf"] = '<a href="'.$pdfFultonPage.'" target="blank">'.$pdfFultonPage.'</a> | <a href="'.$pdfFultonTaxes.'" target="blank">'.$pdfFultonTaxes.'</a> | <a href="'.$pdfFultonWaste.'" target="blank">'.$pdfFultonWaste.'</a>';
+	$res["msg"]["pdf"] = '<a href="'.$pdfFultonPage.'" target="blank">'.$pdfFultonPage.'</a><br><a href="'.$pdfFultonTaxes.'" target="blank">'.$pdfFultonTaxes.'</a><br><a href="'.$pdfFultonWaste.'" target="blank">'.$pdfFultonWaste.'</a>';
 	
 	// http://www.sitepoint.com/convert-html-to-pdf-with-dompdf/
 	$dompdf = new DOMPDF();

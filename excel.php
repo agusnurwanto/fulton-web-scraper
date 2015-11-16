@@ -1,18 +1,18 @@
 <?php
 session_start();
 
-if(!empty($_POST['firstScrape'])){
+$data = json_decode(file_get_contents('php://input'), true);
+
+if(!empty($data['firstScrape'])){
 	$_SESSION = [];
 }
 
-if(!empty($_POST["setSession"])){
-	unset($_POST["setSession"]);
-	unset($_POST["firstScrape"]);
-	$key = $_POST["key"];
-	unset($_POST["key"]);
-	foreach ($_POST as $k => $v) {
-		$_SESSION["key_".$key][$k] = $v;
-	}
+if(!empty($data["setSession"])){
+	$key = $data["key"];
+	$_SESSION["key_".$key]["fultonPage"] = $data["fultonPage"];
+	$_SESSION["key_".$key]["fultonTaxes"] = $data["fultonTaxes"];
+	$_SESSION["key_".$key]["fultonWaste"] = $data["fultonWaste"];
+	$_SESSION["key_".$key]["fultonPdf"] = $data["fultonPdf"];
 	// echo "<pre>".print_r($_SESSION,1)."</pre>";
 	die(json_encode(array("error"=>0)));
 }
@@ -28,6 +28,19 @@ if(!empty($_GET["download"])){
 		<link rel='stylesheet' type='text/css' href='//cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css'>
 		<script src='//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js'></script>
 		<script src='//cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js'></script>
+		<style>
+			#fulton{
+				width: 7000px;
+				padding: 0px !important;
+			}
+			#fulton, th, td{
+				border: 1px solid;
+				padding: 5px 10px;
+			}
+			#fulton td{
+				vertical-align: top;
+			}
+		</style>
 		<script>
 			$('#fulton thead th').each( function () {
 		        var title = $('#fulton tfoot th').eq( $(this).index() ).text();
@@ -61,7 +74,7 @@ if(empty($_SESSION)){
 	$th .= "<tr><th>No</th>";
 	foreach ($_SESSION as $k => $v) {
 		$tr .= "<tr><td style='text-align:center;'>$i</td>";
-		foreach ($v as $key => $value) {
+		foreach ($v["fultonPage"] as $key => $value) {
 			if($i==1){
 				$th .= "<th>".str_replace("_", " ", $key)."</th>";
 			}
@@ -73,6 +86,22 @@ if(empty($_SESSION)){
 
 			$tr .= "<td $align>$value</td>";
 		}
+		if($i==1){
+			$th .= "<th style='width:200px;'>Fulton Taxes</th>";
+			$th .= "<th style='width:200px;'>Fulton Waste</th>";
+			$th .= "<th style='width:600px;'>Fulton PDF</th>";
+		}
+		$tr .= "<td>";
+		foreach ($v["fultonTaxes"] as $key => $value) {
+			$tr .= $key." => ".$value."<br>";
+		}
+		$tr .= "</td>";
+		$tr .= "<td>";
+		foreach ($v["fultonWaste"] as $key => $value) {
+			$tr .= $key." => ".$value."<br>";
+		}
+		$tr .= "</td>";
+		$tr .= "<td>".$v["fultonPdf"]."</td>";
 		$tr .= "</tr>";
 		$i++;
 	}
