@@ -20,14 +20,27 @@ if(empty($_POST['getDetail'])){
 	$res["msg"]["fulton page"] = getDetail($key);
 	$res["msg"]["fulton taxes"] = getDetailFultonTaxes($key);
 	$res["msg"]["fulton waste"] = getDetailFultonWaste($key);
-	$res["msg"]["pdf"] = dirname("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"). "/pdf/".rawurlencode($key).".pdf";
+	$url = dirname("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"). "/pdf/".rawurlencode($key);
+	$pdfFultonPage = $url."_pdfFultonPage.html";
+	$pdfFultonTaxes = $url."_pdfFultonTaxes.pdf";
+	$pdfFultonWaste = $url."_pdfFultonWaste.pdf";
+	$res["msg"]["pdf"] = '<a href="'.$pdfFultonPage.'" target="blank">'.$pdfFultonPage.'</a> | <a href="'.$pdfFultonTaxes.'" target="blank">'.$pdfFultonTaxes.'</a> | <a href="'.$pdfFultonWaste.'" target="blank">'.$pdfFultonWaste.'</a>';
 	
 	// http://www.sitepoint.com/convert-html-to-pdf-with-dompdf/
 	$dompdf = new DOMPDF();
 	$dompdf->load_html($res["msg"]["fulton taxes"]);
 	$dompdf->render();
 	$output = $dompdf->output();
-	file_put_contents(__DIR__ . "/pdf/".$key.".pdf", $output);
+	file_put_contents(__DIR__ . "/pdf/".$key."_pdfFultonTaxes.pdf", $output);
+
+	$dompdf = new DOMPDF();
+	$dompdf->load_html($res["msg"]["fulton waste"]);
+	$dompdf->render();
+	$output = $dompdf->output();
+	file_put_contents(__DIR__ . "/pdf/".$key."_pdfFultonWaste.pdf", $output);
+
+	file_put_contents(__DIR__ . "/pdf/".$key."_pdfFultonPage.html", $res["msg"]["fulton page"]);
+
 	echo json_encode($res);
 }
 
@@ -78,9 +91,24 @@ function getHome(){
 	return $body;
 }
 
+// http://www.jacobward.co.uk/using-proxies-for-scraping-with-php-curl/
+function getProxy(){
+	require __DIR__ . '/library/getProxy.php';
+	$hoge = new Proxy();
+	$hoge->setRandomProxyAndPort();
+	$proxy = $hoge->getProxy().":".$hoge->getPort();
+	return $proxy;
+}
+
 function request($option){
 	$url = $option['url'];
 	$ch = curl_init();
+	$proxy = getProxy();
+
+	if (isset($proxy)) {
+	    curl_setopt($ch, CURLOPT_PROXY, $proxy);
+	}
+
 	curl_setopt($ch, CURLOPT_URL,$url);
 	if(!empty($option['param'])){
 		$param = http_build_query($option['param']);

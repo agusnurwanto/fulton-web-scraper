@@ -45,7 +45,7 @@
 	<br />
 	<div id="container">
 	    <a id="pickfiles" href="javascript:;" style="display:block;">[Select files]</a>
-	    <a onclick="readCsv();" href="javascript:;" style="display:none;">[Start Fulton Scrape]</a>
+	    <a id="readCsv" onclick="readCsv();" href="javascript:;" style="display:none;">[Start Fulton Scrape]</a>
 	</div>
 	<h2>Changelog</h2>
 	<ul>
@@ -62,6 +62,7 @@
 				<li>Fix Bedrooms Full Bath/Half Bath missing.</li>
 				<li>Add link to Project Description and demo page.</li>
 				<li>Allow user to upload CSV file.</li>
+				<li>Resolve bug (The scraper seems to be scraping each parcel twice. When I open up the excel sheet, every parcel is listed twice. Each parcel only needs to be listed once.)</li>
 			</ul>
 		</li>
 	</ul>
@@ -115,6 +116,7 @@
 		uploader.init();
 
 		function readCsv(){
+			$('#readCsv').attr({'onclick':"", "href":""});
 			$('#console').show();
 			$('#console').html('<div class="title">Reading the CSV File.</div>');
 			$.ajax({

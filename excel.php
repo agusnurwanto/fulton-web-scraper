@@ -70,10 +70,6 @@ if(empty($_SESSION)){
 			if (strpos($value,'$') !== false){
 				$align = "style='text-align:right;'";
 			}
-			
-			if (strpos($value,'http://') !== false){
-				$value = "<a href='$value' target='blank'>$value</a>";
-			}
 
 			$tr .= "<td $align>$value</td>";
 		}
