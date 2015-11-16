@@ -28,20 +28,22 @@ class Proxy{
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         $proxyListUrlHtml = curl_exec($ch);
         curl_close($ch);
-        preg_match($this->pattern, $proxyListUrlHtml, $matches);
-        $this->setProxy($matches);
-        $this->setPort($matches);
+        preg_match_all($this->pattern, $proxyListUrlHtml, $matches);
+        // echo "<pre>".print_r($matches,1)."</pre>";
+        $proxy = $matches[0][array_rand($matches[0])];
+        $this->setProxy($proxy);
+        $this->setPort($proxy);
     }
-    public function setProxy($matches){
-        $start = strpos($matches[0], '<td>') + 4;
-        $end = strpos($matches[0], ':');
-        $proxy = substr($matches[0],$start,$end - $start);
+    public function setProxy($match){
+        $start = strpos($match, '<td>') + 4;
+        $end = strpos($match, ':');
+        $proxy = substr($match,$start,$end - $start);
         $this->proxy = $proxy;
     }
-    public function setPort($matches){
-        $start = strpos($matches[0], ':') + 1;
-        $end = strpos($matches[0], '</td');
-        $port = substr($matches[0],$start,$end - $start);
+    public function setPort($match){
+        $start = strpos($match, ':') + 1;
+        $end = strpos($match, '</td');
+        $port = substr($match,$start,$end - $start);
         $this->port = $port;
     }
 }

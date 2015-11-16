@@ -93,11 +93,15 @@ function getHome(){
 
 // http://www.jacobward.co.uk/using-proxies-for-scraping-with-php-curl/
 function getProxy(){
-	require __DIR__ . '/library/getProxy.php';
-	$hoge = new Proxy();
-	$hoge->setRandomProxyAndPort();
-	$proxy = $hoge->getProxy().":".$hoge->getPort();
-	return $proxy;
+	if(!empty($_GET['radomProxy'])){
+		require __DIR__ . '/library/getProxy.php';
+		$hoge = new Proxy();
+		$hoge->setRandomProxyAndPort();
+		$proxy = $hoge->getProxy().":".$hoge->getPort();
+		return $proxy;
+	}else{
+		return false;
+	}
 }
 
 function request($option){

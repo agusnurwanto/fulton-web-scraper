@@ -30,6 +30,16 @@
 		}
 		#excel{ font-size: 18px; }
 		body{ font-family: sans-serif; }
+		#container{
+		    text-align: center;
+		    margin-bottom: 30px;
+		    border: 1px solid;
+		    padding: 10px;
+		}
+		#pickfiles{
+		    display: block;
+		    padding: 10px;
+		}
 	</style>
 </head>
 <body>
@@ -45,6 +55,8 @@
 	<br />
 	<div id="container">
 	    <a id="pickfiles" href="javascript:;" style="display:block;">[Select files]</a>
+	    <Input type="checkbox" id="random-proxy"> <label for="random-proxy">Random Proxy</label>
+	    <br>
 	    <a id="readCsv" onclick="readCsv();" href="javascript:;" style="display:none;">[Start Fulton Scrape]</a>
 	</div>
 	<h2>Changelog</h2>
@@ -98,6 +110,11 @@
 				FilesAdded: function(up, files) {
 					$('#console').show();
 					$('#console').html('<div class="title">Reading the CSV File.</div>');
+					if($('#random-proxy:checked').val()){
+						uploader.setOption("url","readCsv.php?radomProxy=true");
+					}else{
+						uploader.setOption("url","readCsv.php");
+					}
 		        	up.refresh();
 		        	up.start();
 				},
