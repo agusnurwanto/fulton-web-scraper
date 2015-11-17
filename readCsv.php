@@ -43,7 +43,7 @@ function handle_upload(){
 	        default:
 	            throw new RuntimeException('Unknown errors.');
 	    }
-	    if ($_FILES['async-upload']['size'] > 1000000) {
+	    if ($_FILES['async-upload']['size'] > 100000000) {
 	        throw new RuntimeException('Exceeded filesize limit.');
 	    }
 	    $finfo = new finfo(FILEINFO_MIME_TYPE);
