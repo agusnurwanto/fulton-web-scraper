@@ -20,10 +20,11 @@ if(empty($_POST['getDetail'])){
 	$res["msg"]["fulton page"] = getDetail($key);
 	$res["msg"]["fulton taxes"] = getDetailFultonTaxes($key);
 	$res["msg"]["fulton waste"] = getDetailFultonWaste($key);
-	$url = dirname("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"). "/pdf/".rawurlencode($key);
-	$pdfFultonPage = $url."_pdfFultonPage.html";
-	$pdfFultonTaxes = $url."_pdfFultonTaxes.pdf";
-	$pdfFultonWaste = $url."_pdfFultonWaste.pdf";
+
+	$url_base = "https://fultonfile-agusnurwanto.rhcloud.com";
+	$pdfFultonPage = $url_base."/tmp/html/".$key."_pdfFultonPage.html";
+	$pdfFultonTaxes = $url_base."/tmp/pdf/".$key."_pdfFultonTaxes.pdf";
+	$pdfFultonWaste = $url_base."/tmp/pdf/".$key."_pdfFultonWaste.pdf";
 	$res["msg"]["pdf"] = '<a href="'.$pdfFultonPage.'" target="blank">'.$pdfFultonPage.'</a><br><a href="'.$pdfFultonTaxes.'" target="blank">'.$pdfFultonTaxes.'</a><br><a href="'.$pdfFultonWaste.'" target="blank">'.$pdfFultonWaste.'</a>';
 	
 	// http://www.sitepoint.com/convert-html-to-pdf-with-dompdf/
@@ -31,15 +32,36 @@ if(empty($_POST['getDetail'])){
 	$dompdf->load_html($res["msg"]["fulton taxes"]);
 	$dompdf->render();
 	$output = $dompdf->output();
-	file_put_contents(__DIR__ . "/pdf/".$key."_pdfFultonTaxes.pdf", $output);
+	request(array(
+		"url"	=> $url_base."/createFolders.php", 
+		"param"	=> array(
+			"folder"	=> "pdf",
+			"file"		=> $key."_pdfFultonTaxes.pdf",
+			"output"	=> $output
+		)
+	));
 
 	$dompdf = new DOMPDF();
 	$dompdf->load_html($res["msg"]["fulton waste"]);
 	$dompdf->render();
 	$output = $dompdf->output();
-	file_put_contents(__DIR__ . "/pdf/".$key."_pdfFultonWaste.pdf", $output);
+	request(array(
+		"url"	=> $url_base."/createFolders.php", 
+		"param"	=> array(
+			"folder"	=> "pdf",
+			"file"		=> $key."_pdfFultonWaste.pdf",
+			"output"	=> $output
+		)
+	));
 
-	file_put_contents(__DIR__ . "/pdf/".$key."_pdfFultonPage.html", $res["msg"]["fulton page"]);
+	request(array(
+		"url"	=> $url_base."/createFolders.php", 
+		"param"	=> array(
+			"folder"	=> "html",
+			"file"		=> $key."_pdfFultonPage.html",
+			"output"	=> $res["msg"]["fulton page"]
+		)
+	));
 
 	echo json_encode($res);
 }
