@@ -59,7 +59,7 @@
 		<li><a href="Project Description.txt" target="blank">Project Description</a>.</li>
 		<li><a href="https://fultonscraper.herokuapp.com/" target="blank">Demo Fulton Scraper</a>.</li>
 		<li>Save As your .xls data to .csv file. For example, you can download <a href="Fulton Excel Input.xlsx" target="blank">this file</a>.</li>
-		<li>The key must be in the format of the <b>column number 2.</b></li>
+		<li>The key must be in the format of the <b>second column or first column.</b></li>
 		<li>Select your CSV file. For example, you can download <a href="Fulton.csv" target="blank">this file</a>.</li>
 		<li>The script will be automate to scrape data by KEY from CSV file.</li>
 		<li>Please waiting when run scrape process.</li>
@@ -114,7 +114,13 @@
 			Update 18 Nov 2015 : 
 			<ul>
 				<li>Add video setting excel file.</li>
-				<li>Change upload data on <a href="https://fultonfile-agusnurwanto.rhcloud.com/tmp">fultonfile-agusnurwanto.rhcloud.com</a>.</li>
+				<li>Change upload data to <a href="https://fultonfile-agusnurwanto.rhcloud.com/tmp">fultonfile-agusnurwanto.rhcloud.com</a>.</li>
+			</ul>
+		</li>
+		<li>
+			Update 19 Nov 2015 : 
+			<ul>
+				<li>Add conditional user when read CSV file. Key in second column else key in fist column.</li>
 			</ul>
 		</li>
 	</ul>
@@ -200,6 +206,9 @@
 			  	return sequence.then(function() {
 					if((i+1)%2==0){
 						$('#console .title').html('Total key is: '+allKey.length+' <br>Proses '+i+' Scrape. <a href="excel.php" target="blank" id="excel">Show on excel!</a><br>Please Waiting!');
+					}
+					if(!key[1]){
+						key[1] = key[0];
 					}
 				    return getPage(key[1]);
 			  	})
