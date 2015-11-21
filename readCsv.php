@@ -1,4 +1,5 @@
 <?php
+session_start();
 
 require __DIR__ . '/vendor/autoload.php';
 use League\Csv\Reader;
@@ -12,7 +13,29 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 	$file = handle_upload();
 	if(empty($file["error"])){
 		$csv = Reader::createFromPath($file["file"]);
-		$res["msg"] = $csv->setOffset(1)->fetchAll();
+		$csvData = $csv->setOffset(1)->fetchAll();
+		$keys = [];
+		foreach ($csvData as $k => $v) {
+			if(!empty($v[1])){
+				$key = getKey($v[1]);
+				$keys[] = $key;
+			}else if(!empty($v[0])){
+				$key = getKey($v[0]);
+				$keys[] = $key;
+			}
+		}
+		foreach ($_SESSION as $k => $v) {
+			$key = getKey($v["parselNumber"]);
+			$cek = array_search($key, $keys);
+			if($cek>=0){
+				unset($keys[$cek]);
+			}
+		}
+		$res['msg'] = [];
+		$res['key'] = count($_SESSION);
+		foreach ($keys as $key => $value) {
+			$res['msg'][] = $value;
+		}
 	}else{
 		$res = $file;
 	}
@@ -20,6 +43,12 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 	$res["error"] = 1;
 	$res["msg"] = $_FILES;
 }
+
+function getKey($string){
+	$number = preg_replace( '/[^0-9]/', '', $string );
+	return $number;
+}
+
 
 function handle_upload(){
 	$res = array("error" => 0);

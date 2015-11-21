@@ -17,6 +17,7 @@ if(empty($_POST['getDetail'])){
 }else{
 	$key = $_POST['key'];
 	$res["error"] = 0;
+	$res["key"] = $key;
 	$res["msg"]["fulton page"] = getDetail($key);
 	$res["msg"]["fulton taxes"] = getDetailFultonTaxes($key);
 	$res["msg"]["fulton waste"] = getDetailFultonWaste($key);

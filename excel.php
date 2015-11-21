@@ -3,7 +3,8 @@ session_start();
 
 $data = json_decode(file_get_contents('php://input'), true);
 
-if(!empty($data['firstScrape'])){
+// if(!empty($data['firstScrape'])){
+if(!empty($_GET['delete'])){
 	$_SESSION = [];
 }
 
@@ -13,6 +14,7 @@ if(!empty($data["setSession"])){
 	$_SESSION["key_".$key]["fultonTaxes"] = $data["fultonTaxes"];
 	$_SESSION["key_".$key]["fultonWaste"] = $data["fultonWaste"];
 	$_SESSION["key_".$key]["fultonPdf"] = $data["fultonPdf"];
+	$_SESSION["key_".$key]["parselNumber"] = $data["parselNumber"];
 	// echo "<pre>".print_r($_SESSION,1)."</pre>";
 	die(json_encode(array("error"=>0)));
 }

@@ -28,7 +28,7 @@
 		    width: 100%;
 		    height: 400px;
 		}
-		#excel{ font-size: 18px; }
+		#excel, #reload{ font-size: 18px; }
 		body{ font-family: sans-serif; }
 		#container{
 		    text-align: center;
@@ -63,6 +63,8 @@
 		<li>Select your CSV file. For example, you can download <a href="Fulton.csv" target="blank">this file</a>.</li>
 		<li>The script will be automate to scrape data by KEY from CSV file.</li>
 		<li>Please waiting when run scrape process.</li>
+		<li>Show the excel page in <a href="excel.php" target="blank">here</a>.</li>
+		<li>You can delete all data on excel with click this link <a onclick="return confirm('Do you really to delete all data?');" href="excel.php?delete=true" target="blank">delete all data</a>.</li>
 	</ol>
 	<br />
 	<div id="container">
@@ -123,6 +125,13 @@
 				<li>Add conditional user when read CSV file. Key in second column else key in fist column.</li>
 			</ul>
 		</li>
+		<li>
+			Update 21 Nov 2015 : 
+			<ul>
+				<li>Update script continue to scrape when stops. So not have to redo from the beginning.</li>
+				<li>Add link to delete data excel.</li>
+			</ul>
+		</li>
 	</ul>
 	<div id="console"></div>
 	<div id="footer">Develop by <a href="http://agus.pondokprogrammer.com" target="blank">Agus Nurwanto</a>.</div>
@@ -169,7 +178,7 @@
 					var res = JSON.parse(response.response);
 					if(res.error!="1"){
 						window.allKey = res.msg;
-						startScrape();
+						startScrape(res.key);
 					}else{
 						alert(res.msg);
 						console.log(res);
@@ -191,7 +200,7 @@
 			    success:function(res) {
 			    	if(res.error!="1"){
 						window.allKey = res.msg;
-			      		return startScrape();
+			      		return startScrape(res.key);
 			      	}else{
 			      		return console.log(res);
 			      	}
@@ -199,53 +208,62 @@
 		  	});
 		}
 
-		function startScrape(){
+		function startScrape(i){
+			if(allKey.length<=0){
+				return $('#console').html('<div class="title">This Parcel Numbers has been scrape.<br><a href="excel.php" target="blank" id="excel">Show on excel!</a> or <a href="" id="reload">Reload this page!</a></div>');	
+			}
 			$('#console').html('<div class="title">Total key is: '+allKey.length+' <br>Start to Scrape.<br>Please Waiting!</div><div id="data"><table id="table-data"><thead></thead><tbody></tbody></table></div>');
-			var i = j = 0;
+			var j = 0;
 			allKey.reduce(function(sequence, key) {
 			  	return sequence.then(function() {
 					if((i+1)%2==0){
-						$('#console .title').html('Total key is: '+allKey.length+' <br>Proses '+i+' Scrape. <a href="excel.php" target="blank" id="excel">Show on excel!</a><br>Please Waiting!');
+						$('#console .title').html('Total key is: '+allKey.length+' <br>Proses '+(j)+' Scrape. <a href="excel.php" target="blank" id="excel">Show on excel!</a><br>Please Waiting!');
 					}
-					if(!key[1]){
-						key[1] = key[0];
-					}
-				    return getPage(key[1]);
+				    return getPage(key);
 			  	})
 			  	.then(function(res){
 			  		return new Promise(function(resolve, reject){
-				  		parsingData($.parseHTML(res.msg["fulton page"].replace(/<img[^>]*>/g,"")))
+				  		parsingData($.parseHTML(res.msg["fulton page"]
+				  			.replace(/<img[^>]*>/g,"")
+				  			.replace(/<link[^>]*>/g,"")
+				  			.replace(/<script[^>]*>/g,"")))
 					  		.then(function(data){
-					  			allData.fultonPage[j] = data;
-					  			allData.fultonPdf[j] = res.msg.pdf;
+					  			allData.fultonPage[i] = data;
+					  			allData.fultonPdf[i] = res.msg.pdf;
 					  			return resolve(res);
 					  		});
 					});
 			  	})
 			  	.then(function(res){
 			  		return new Promise(function(resolve, reject){
-				  		parsingDataTaxes($.parseHTML(res.msg["fulton taxes"].replace(/<img[^>]*>/g,"")))
+				  		parsingDataTaxes($.parseHTML(res.msg["fulton taxes"]
+				  			.replace(/<img[^>]*>/g,"")
+				  			.replace(/<link[^>]*>/g,"")
+				  			.replace(/<script[^>]*>/g,"")))
 				  			.then(function(data){
-				  				allData.fultonTaxes[j] = data;
+				  				allData.fultonTaxes[i] = data;
 				  				return resolve(res);
 				  			})
 				  	});
 			  	})
 			  	.then(function(res){
 			  		return new Promise(function(resolve, reject){
-				  		parsingDataWaste($.parseHTML(res.msg["fulton waste"].replace(/<img[^>]*>/g,"")))
+				  		parsingDataWaste($.parseHTML(res.msg["fulton waste"]
+				  			.replace(/<img[^>]*>/g,"")
+				  			.replace(/<link[^>]*>/g,"")
+				  			.replace(/<script[^>]*>/g,"")))
 				  			.then(function(data){
-				  				allData.fultonWaste[j] = data;
-				  				if(i==0){
-				  					addDataToTable(i, true);
-				  					addDataToSession(i, true);
+				  				allData.fultonWaste[i] = data;
+				  				if(j==0){
+				  					addDataToTable(i, true, j);
+				  					addDataToSession(i, true, res.key);
 				  				}else{
-				  					addDataToTable(i);
-				  					addDataToSession(i);
+				  					addDataToTable(i, false, j);
+				  					addDataToSession(i, false, res.key);
 				  				}
 						  		j++;
 						  		i++;
-						  		if(i>=(allKey.length-1)){
+						  		if(j>=(allKey.length-1)){
 							    	return resolve(finishScrape());
 						  		}
 						  		return resolve(res);
@@ -254,7 +272,7 @@
 			  	})
 			  	.catch(function(err){
 			  		console.log(err.stack);
-			  		i++;
+			  		j++;
 			  		return Promise.reject(err);
 			  	})
 			}, Promise.resolve());
@@ -401,7 +419,7 @@
 			$('#console .title').html('Process 100%. Finish :)<br><a href="excel.php" target="blank" id="excel">Show on excel!</a>');
 		}
 
-		function addDataToTable(j, cekHeader){
+		function addDataToTable(j, cekHeader, no){
 			if(cekHeader){
 				var header = "<tr>";
 				header += "<th>No</th>";
@@ -415,7 +433,7 @@
 				$('#data table thead').html(header);
 			}
 			var content = "<tr>";
-			content += "<td>"+(j+1)+"</td>";
+			content += "<td>"+(no+1)+"</td>";
 			for(var i in allData.fultonPage[j]){ 
 				content += "<td>"+allData.fultonPage[j][i]+"</td>";
 			};
@@ -434,7 +452,7 @@
 			$('#data table tbody').append(content);
 		}
 
-		function addDataToSession(j, firstScrape){
+		function addDataToSession(j, firstScrape, key){
 			var param = {};
 			param.fultonPage = allData.fultonPage[j];
 			param.fultonTaxes = allData.fultonTaxes[j];
@@ -442,6 +460,7 @@
 			param.fultonPdf = allData.fultonPdf[j];
 			param.setSession = true;
 			param.key = j;
+			param.parselNumber = key;
 			if(firstScrape){
 				param.firstScrape = true;
 			}
