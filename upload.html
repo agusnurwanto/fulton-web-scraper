@@ -53,6 +53,10 @@
 		#table-data td{
 			vertical-align: top;
 		}
+		div#idError {
+		    max-height: 150px;
+		    overflow: auto;
+		}
 	</style>
 </head>
 <body>
@@ -195,9 +199,15 @@
 
 		function showIdError(){
 			if(window.allKeyError){
+				var keys = '<div id="idError">';
+				for(var i in allKeyError){
+					keys += (+i+1)+". "+allKeyError[i]+"<br>";
+				}
+				keys += "</div>";
 				swal({   
 					title: "Parcel ID error",   
-					text: JSON.stringify(window.allKeyError)
+					text: keys,
+					html: true
 				});
 			}
 		}
