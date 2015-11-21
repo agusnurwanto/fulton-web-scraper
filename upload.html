@@ -228,7 +228,7 @@
 			if(allKey.length<=0){
 				return $('#console').html('<div class="title">This Parcel Numbers has been scrape.<br><a href="excel.php" target="blank" id="excel">Show on excel!</a> or <a href="" id="reload">Reload this page!</a></div>');	
 			}
-			var buttonError = "";
+			var buttonError = "All ID is perfect.";
 			if(allKeyError){
 				buttonError = '<a onclick="showIdError(); return false;" id="buttonError" href="">Show Error ID</a>';
 			}
@@ -289,7 +289,7 @@
 						  		j++;
 						  		i++;
 						  		if(j>=(allKey.length-1)){
-							    	return resolve(finishScrape());
+							    	return resolve(finishScrape(buttonError));
 						  		}
 						  		return resolve(res);
 				  			})
@@ -440,8 +440,8 @@
 			});
 		}
 
-		function finishScrape(){
-			$('#console .title').html('Process 100%. Finish :)<br><a href="excel.php" target="blank" id="excel">Show on excel!</a>');
+		function finishScrape(buttonError){
+			$('#console .title').html('Process 100%. Finish :)<br><a href="excel.php" target="blank" id="excel">Show on excel! | '+buttonError+'</a>');
 		}
 
 		function addDataToTable(j, cekHeader, no){
