@@ -34,7 +34,11 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 		$res['msg'] = [];
 		$res['key'] = count($_SESSION);
 		foreach ($keys as $key => $value) {
-			$res['msg'][] = $value;
+			if(strlen($value)<13){
+				$res['msg_err'][] = $value;
+			}else{
+				$res['msg'][] = $value;
+			}
 		}
 	}else{
 		$res = $file;

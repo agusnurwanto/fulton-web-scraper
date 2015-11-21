@@ -5,6 +5,8 @@
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
 	<!-- production -->
 	<script type="text/javascript" src="plupload/js/plupload.full.min.js"></script>
+	<script src="js/sweetalert.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/sweetalert.css">
 	<style>
 		#console{
 			display: none;
@@ -28,7 +30,7 @@
 		    width: 100%;
 		    height: 400px;
 		}
-		#excel, #reload{ font-size: 18px; }
+		#excel, #reload, #buttonError{ font-size: 18px; }
 		body{ font-family: sans-serif; }
 		#container{
 		    text-align: center;
@@ -130,6 +132,7 @@
 			<ul>
 				<li>Update script continue to scrape when stops. So not have to redo from the beginning.</li>
 				<li>Add link to delete data excel.</li>
+				<li>Filter Fulton ID error.</li>
 			</ul>
 		</li>
 	</ul>
@@ -178,6 +181,8 @@
 					var res = JSON.parse(response.response);
 					if(res.error!="1"){
 						window.allKey = res.msg;
+						window.allKeyError = res.msg_err;
+						showIdError();
 						startScrape(res.key);
 					}else{
 						alert(res.msg);
@@ -187,6 +192,15 @@
 			},
 		});
 		uploader.init();
+
+		function showIdError(){
+			if(window.allKeyError){
+				swal({   
+					title: "Parcel ID error",   
+					text: JSON.stringify(window.allKeyError)
+				});
+			}
+		}
 
 		function readCsv(){
 			$('#readCsv').attr({'onclick':"", "href":""});
@@ -200,6 +214,8 @@
 			    success:function(res) {
 			    	if(res.error!="1"){
 						window.allKey = res.msg;
+						window.allKeyError = res.msg_err;
+						showIdError();
 			      		return startScrape(res.key);
 			      	}else{
 			      		return console.log(res);
@@ -212,12 +228,21 @@
 			if(allKey.length<=0){
 				return $('#console').html('<div class="title">This Parcel Numbers has been scrape.<br><a href="excel.php" target="blank" id="excel">Show on excel!</a> or <a href="" id="reload">Reload this page!</a></div>');	
 			}
-			$('#console').html('<div class="title">Total key is: '+allKey.length+' <br>Start to Scrape.<br>Please Waiting!</div><div id="data"><table id="table-data"><thead></thead><tbody></tbody></table></div>');
+			var buttonError = "";
+			if(allKeyError){
+				buttonError = '<a onclick="showIdError(); return false;" id="buttonError" href="">Show Error ID</a>';
+			}
+			$('#console').html('<div class="title">Total key is: '+allKey.length+' <br>Start to Scrape.<br>Please Waiting!<br>'
+				+buttonError
+				+'</div><div id="data"><table id="table-data"><thead></thead><tbody></tbody></table></div>');
 			var j = 0;
 			allKey.reduce(function(sequence, key) {
 			  	return sequence.then(function() {
 					if((i+1)%2==0){
-						$('#console .title').html('Total key is: '+allKey.length+' <br>Proses '+(j)+' Scrape. <a href="excel.php" target="blank" id="excel">Show on excel!</a><br>Please Waiting!');
+						$('#console .title').html('Total key is: '+allKey.length+' <br>Proses '+(j)
+							+' Scrape. <a href="excel.php" target="blank" id="excel">Show on excel!</a> | '
+							+buttonError
+							+'<br>Please Waiting!');
 					}
 				    return getPage(key);
 			  	})
