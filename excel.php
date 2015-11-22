@@ -111,6 +111,7 @@ if(empty($_SESSION)){
 
 	$i = 1;
 	$th .= "<tr><th>No</th>";
+	$errorText = "Error scraping";
 	foreach ($_SESSION as $k => $v) {
 		$tr .= "<tr><td style='text-align:center;'>$i</td>";
 		foreach ($v["fultonPage"] as $key => $value) {
@@ -122,8 +123,11 @@ if(empty($_SESSION)){
 			if (strpos($value,'$') !== false){
 				$align = "style='text-align:right;'";
 			}
-
-			$tr .= "<td $align>$value</td>";
+			if(!empty($value)){
+				$tr .= "<td $align>$value</td>";
+			}else{
+				$tr .= "<td>".$errorText."</td>";
+			}
 		}
 		if($i==1){
 			foreach ($headersFultonTaxes as $key => $value) {
@@ -132,7 +136,9 @@ if(empty($_SESSION)){
 			foreach ($headersWasteTaxes as $key => $value) {
 				$th .= "<th>".$value."</th>";
 			}
-			$th .= "<th style='width:600px;'>Fulton PDF</th>";
+			$th .= "<th style='width:600px;'>Fulton Page HTML</th>";
+			$th .= "<th style='width:600px;'>Fulton Taxes PDF</th>";
+			$th .= "<th style='width:600px;'>Fulton Waste PDF</th>";
 		}
 		foreach ($headersFultonTaxes as $val) {
 			$cek = false;
@@ -144,7 +150,7 @@ if(empty($_SESSION)){
 				}
 			}
 			if(!$cek){
-				$tr .= "<td></td>";
+				$tr .= "<td>".$errorText."</td>";
 			}
 		}
 		foreach ($headersWasteTaxes as $val) {
@@ -157,10 +163,17 @@ if(empty($_SESSION)){
 				}
 			}
 			if(!$cek){
-				$tr .= "<td></td>";
+				$tr .= "<td>".$errorText."</td>";
 			}
 		}
-		$tr .= "<td>".$v["fultonPdf"]."</td>";
+		$urls = explode('<br>', $v['fultonPdf']);
+		for($j=0; $j<3; $j++){
+			if(!empty($urls[$j])){
+				$tr .= "<td>".$urls[$j]."</td>";
+			}else{
+				$tr .= "<td>".$errorText."</td>";
+			}
+		}
 		$tr .= "</tr>";
 		$i++;
 	}
