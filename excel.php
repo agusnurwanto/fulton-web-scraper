@@ -72,6 +72,43 @@ if(empty($_SESSION)){
 		<td>Data is empty!</td>
 	</tr>";
 }else{
+	$headersFultonTaxes = [];
+	$headers = array(
+		"County Principal Amount",
+		"County Interest",
+		"County Penalties/Fees",
+		"County Paid",
+		"County Total",
+		"City Principal Amount",
+		"City Interest",
+		"City Penalties/Fees",
+		"City Paid",
+		"City Total"
+	);
+	$year = date("Y");
+	for($i=0; $i<=15; $i++){
+		foreach ($headers as $key => $value) {
+			$headersFultonTaxes[] = ($year-$i).' '.$value;
+		}
+	}
+
+	$headersWasteTaxes = [];
+	$headers = array(
+		"Original Amount",
+		"Exemptiont",
+		"Interest",
+		"Penalties/Fees",
+		"Paid",
+		"Amount Due",
+		"Last Payment"
+	);
+	$year = date("Y");
+	for($i=0; $i<=15; $i++){
+		foreach ($headers as $key => $value) {
+			$headersWasteTaxes[] = ($year-$i).' '.$value;
+		}
+	}
+
 	$i = 1;
 	$th .= "<tr><th>No</th>";
 	foreach ($_SESSION as $k => $v) {
@@ -89,20 +126,40 @@ if(empty($_SESSION)){
 			$tr .= "<td $align>$value</td>";
 		}
 		if($i==1){
-			$th .= "<th style='width:200px;'>Fulton Taxes</th>";
-			$th .= "<th style='width:200px;'>Fulton Waste</th>";
+			foreach ($headersFultonTaxes as $key => $value) {
+				$th .= "<th>".$value."</th>";
+			}
+			foreach ($headersWasteTaxes as $key => $value) {
+				$th .= "<th>".$value."</th>";
+			}
 			$th .= "<th style='width:600px;'>Fulton PDF</th>";
 		}
-		$tr .= "<td>";
-		foreach ($v["fultonTaxes"] as $key => $value) {
-			$tr .= $key." => ".$value."<br>";
+		foreach ($headersFultonTaxes as $val) {
+			$cek = false;
+			foreach ($v["fultonTaxes"] as $key => $value) {
+				if($val==$key){
+					$tr .= "<td>".$value."</td>";
+					$cek = true;
+					break;
+				}
+			}
+			if(!$cek){
+				$tr .= "<td></td>";
+			}
 		}
-		$tr .= "</td>";
-		$tr .= "<td>";
-		foreach ($v["fultonWaste"] as $key => $value) {
-			$tr .= $key." => ".$value."<br>";
+		foreach ($headersWasteTaxes as $val) {
+			$cek = false;
+			foreach ($v["fultonWaste"] as $key => $value) {
+				if($val==$key){
+					$tr .= "<td>".$value."</td>";
+					$cek = true;
+					break;
+				}
+			}
+			if(!$cek){
+				$tr .= "<td></td>";
+			}
 		}
-		$tr .= "</td>";
 		$tr .= "<td>".$v["fultonPdf"]."</td>";
 		$tr .= "</tr>";
 		$i++;
