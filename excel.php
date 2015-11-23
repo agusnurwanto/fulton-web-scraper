@@ -9,12 +9,68 @@ if(!empty($_GET['delete'])){
 }
 
 if(!empty($data["setSession"])){
-	$key = $data["key"];
-	$_SESSION["key_".$key]["fultonPage"] = $data["fultonPage"];
-	$_SESSION["key_".$key]["fultonTaxes"] = $data["fultonTaxes"];
-	$_SESSION["key_".$key]["fultonWaste"] = $data["fultonWaste"];
-	$_SESSION["key_".$key]["fultonPdf"] = $data["fultonPdf"];
-	$_SESSION["key_".$key]["parselNumber"] = $data["parselNumber"];
+	if(!empty($data['action']) && $data['action']=="IdError"){
+		$oldKey = $data["key"];
+		foreach ($data["ids"] as $k => $v) {
+			$id = str_split($v);
+			$id[2] = ' '.$id[2];
+			$v = implode('', $id);
+			$fultonPage["Parcel Number"] = $v;
+			$fultonPage["Location Address"] = "";
+			$fultonPage["Land Value"] = "";
+			$fultonPage["Building Value"] = "";
+			$fultonPage["Total Value"] = "";
+			$fultonPage["YearBuilt"] = "";
+			$fultonPage["Square Feet"] = "";
+			$fultonPage["Bedrooms"] = "";
+			$fultonPage["Full Bath/Half Bath"] = "";
+			$fultonPage["Owner Name"] = "";
+			$fultonPage["Mailing Address"] = "";
+			$fultonPage["Property Class"] = "";
+			$fultonPage["Neighborhood"] = "";
+			$fultonPage["Today’s Date"] = "";
+			$fultonPage["Tax District"] = "";
+			$fultonPage["Zoning"] = "";
+			$fultonPage["Acres"] = "";
+			$fultonPage["Homestead"] = "";
+			$fultonPage["LUC"] = "";
+			$fultonPage["Class"] = "";
+			$fultonPage["Assessed Value"] = "";
+			$fultonPage["Land Type"] = "";
+			$fultonPage["Land Code"] = "";
+			$fultonPage["Descripton"] = "";
+			$fultonPage["Acreage"] = "";
+			$fultonPage["Price"] = "";
+			$fultonPage["Card"] = "";
+			$fultonPage["Stories"] = "";
+			$fultonPage["Exterior Wall"] = "";
+			$fultonPage["Style"] = "";
+			$fultonPage["Res Sq Ft"] = "";
+			$fultonPage["Total Rooms"] = "";
+			$fultonPage["Sale Date"] = "";
+			$fultonPage["Sale Price"] = "";
+			$fultonPage["Instrument"] = "";
+			$fultonPage["Deed Book"] = "";
+			$fultonPage["Deed Page"] = "";
+			$fultonPage["Sale Qualification"] = "";
+			$fultonPage["Validity"] = "";
+			$fultonPage["Grantee"] = "";
+			$fultonPage["Grantor"] = "";
+			$key = $oldKey+$k;
+			$_SESSION["key_".$key]["fultonPage"] = $fultonPage;
+			$_SESSION["key_".$key]["fultonTaxes"] = array();
+			$_SESSION["key_".$key]["fultonWaste"] = array();
+			$_SESSION["key_".$key]["fultonPdf"] = "";
+			$_SESSION["key_".$key]["parselNumber"] = $v;
+		}
+	}else{
+		$key = $data["key"];
+		$_SESSION["key_".$key]["fultonPage"] = $data["fultonPage"];
+		$_SESSION["key_".$key]["fultonTaxes"] = $data["fultonTaxes"];
+		$_SESSION["key_".$key]["fultonWaste"] = $data["fultonWaste"];
+		$_SESSION["key_".$key]["fultonPdf"] = $data["fultonPdf"];
+		$_SESSION["key_".$key]["parselNumber"] = $data["parselNumber"];
+	}
 	// echo "<pre>".print_r($_SESSION,1)."</pre>";
 	die(json_encode(array("error"=>0)));
 }
@@ -191,7 +247,7 @@ echo "
 </style>
 <body>
 	$download
-	<table id='fulton' style='width:7000px;border: 1px solid;' cellspacing='0'>
+	<table id='fulton' style='width:10000px;border: 1px solid;' cellspacing='0'>
 		<thead>
 			$th
 		</thead>

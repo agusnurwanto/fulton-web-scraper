@@ -43,7 +43,7 @@
 		    padding: 10px;
 		}
 		#table-data{
-			width: 7000px;
+			width: 10000px;
 			padding: 0px !important;
 		}
 		#table-data, th, td{
@@ -146,6 +146,12 @@
 				<li>Change list of data to one row.</li>
 			</ul>
 		</li>
+		<li>
+			Update 23 Nov 2015 : 
+			<ul>
+				<li>Include Error Parcel Numbers to spreadsheet.</li>
+			</ul>
+		</li>
 	</ul>
 	<div id="console"></div>
 	<div id="footer">Develop by <a href="http://agus.pondokprogrammer.com" target="blank">Agus Nurwanto</a>.</div>
@@ -194,7 +200,8 @@
 						window.allKey = res.msg;
 						window.allKeyError = res.msg_err;
 						showIdError();
-						startScrape(res.key);
+						sentIdError(res.key);
+						startScrape(res.key+allKeyError.length);
 					}else{
 						alert(res.msg);
 						console.log(res);
@@ -205,7 +212,7 @@
 		uploader.init();
 
 		function showIdError(){
-			if(window.allKeyError){
+			if(window.allKeyError.length>0){
 				var keys = '<div id="idError">';
 				for(var i in allKeyError){
 					keys += (+i+1)+". "+allKeyError[i]+"<br>";
@@ -216,6 +223,26 @@
 					text: keys,
 					html: true
 				});
+			}
+		}
+
+		function sentIdError(j){
+			if(window.allKeyError.length>0){
+				var param = {};
+				param.ids = window.allKeyError;
+				param.action = "IdError";
+				param.setSession = true;
+				param.key = j;
+				$.ajax({
+				    url:"excel.php",  
+				    type: "POST",
+				    contentType: 'application/json',
+					data: JSON.stringify(param),
+					dataType: "JSON",
+				    success:function(data) {
+				    	return data;
+				    }
+			  	});
 			}
 		}
 
@@ -233,7 +260,8 @@
 						window.allKey = res.msg;
 						window.allKeyError = res.msg_err;
 						showIdError();
-			      		return startScrape(res.key);
+						sentIdError(res.key);
+						startScrape(res.key+allKeyError.length);
 			      	}else{
 			      		return console.log(res);
 			      	}
@@ -246,8 +274,8 @@
 				return $('#console').html('<div class="title">This Parcel Numbers has been scrape.<br><a href="excel.php" target="blank" id="excel">Show on excel!</a> or <a href="" id="reload">Reload this page!</a></div>');	
 			}
 			var buttonError = "All ID is perfect.";
-			if(allKeyError){
-				buttonError = '<a onclick="showIdError(); return false;" id="buttonError" href="">Show Error ID</a>';
+			if(allKeyError.length>0){
+				buttonError = '| <a onclick="showIdError(); return false;" id="buttonError" href="">Show Error ID</a>';
 			}
 			$('#console').html('<div class="title">Total key is: '+allKey.length+' <br>Start to Scrape.<br>Please Waiting!<br>'
 				+buttonError
@@ -424,6 +452,11 @@
 						}
 					});
 				});
+				var total = $('#currentData table.webGridDetail').next().text();
+				if(total){
+					total = '$'+total.split("$")[1];
+				}
+				data["Grand Total Due (Property Taxes)"] = total;
 				return resolve(data);
 			})
 			.catch(function(err){
@@ -449,6 +482,11 @@
 						}
 					});
 				});
+				var total = $('#currentData table.webGridDetailSW').next().text();
+				if(total){
+					total = '$'+total.split("$")[1];
+				}
+				data["Grand Total Due (Solid Waste)"] = total;
 				return resolve(data);
 			})
 			.catch(function(err){
@@ -462,34 +500,104 @@
 		}
 
 		function addDataToTable(j, cekHeader, no){
+			var headersFultonTaxes = [];
+			var headers = [
+				"County Principal Amount",
+				"County Interest",
+				"County Penalties/Fees",
+				"County Paid",
+				"County Total",
+				"City Principal Amount",
+				"City Interest",
+				"City Penalties/Fees",
+				"City Paid",
+				"City Total"
+			];
+			var year = new Date().getFullYear();
+			for(var i=0; i<=15; i++){
+				for(var k in headers) {
+					headersFultonTaxes.push((year-i)+' '+headers[k]);
+				}
+			}
+
+			var headersWasteTaxes = [];
+			var headers = [
+				"Original Amount",
+				"Exemptiont",
+				"Interest",
+				"Penalties/Fees",
+				"Paid",
+				"Amount Due",
+				"Last Payment"
+			];
+			var year = new Date().getFullYear();
+			for(var i=0; i<=15; i++){
+				for(var k in headers) {
+					headersWasteTaxes.push((year-i)+' '+headers[k]);
+				}
+			}
+
+			var errorText = "Error scraping";
+
 			if(cekHeader){
 				var header = "<tr>";
 				header += "<th>No</th>";
 				for(var i in allData.fultonPage[j]){ 
 					header += "<th>"+i+"</th>";
 				};
-				header += "<th style='width:200px;'>Fulton Taxes</th>";
-				header += "<th style='width:200px;'>Fulton Waste</th>";
-				header += "<th style='width:600px;'>Url PDF</th>";
+				for(var i in headersFultonTaxes){
+					header += "<th>"+headersFultonTaxes[i]+"</th>";
+				}
+				for(var i in headersWasteTaxes){
+					header += "<th>"+headersWasteTaxes[i]+"</th>";
+				}
+				header += "<th style='width:600px;'>Fulton Page HTML</th>";
+				header += "<th style='width:600px;'>Fulton Taxes PDF</th>";
+				header += "<th style='width:600px;'>Fulton Waste PDF</th>";
 				header += "</tr>";
 				$('#data table thead').html(header);
 			}
 			var content = "<tr>";
 			content += "<td>"+(no+1)+"</td>";
 			for(var i in allData.fultonPage[j]){ 
-				content += "<td>"+allData.fultonPage[j][i]+"</td>";
+				if(allData.fultonPage[j][i]){
+					content += "<td>"+allData.fultonPage[j][i]+"</td>";
+				}else{
+					content += "<td>"+errorText+"</td>";
+				}
 			};
-			content += "<td>";
-			for(var i in allData.fultonTaxes[j]){ 
-				content += i+" => "+allData.fultonTaxes[j][i]+"<br>";
-			};
-			content += "</td>";
-			content += "<td>";
-			for(var i in allData.fultonWaste[j]){ 
-				content += i+" => "+allData.fultonWaste[j][i]+"<br>";
-			};
-			content += "</td>";
-			content += "<td>"+allData.fultonPdf[j]+"</td>";
+			for(var i in headersFultonTaxes){
+				var cek = false;
+				for(var k in allData.fultonTaxes[j]) {
+					if(headersFultonTaxes[i]==k){
+						content += "<td>"+allData.fultonTaxes[j][k]+"</td>";
+						cek = true;
+						break;
+					}
+				}
+				if(!cek){
+					content += "<td>"+errorText+"</td>";
+				}
+			}
+			for(var i in headersWasteTaxes){
+				var cek = false;
+				for(var k in allData.fultonWaste[j]) {
+					if(headersWasteTaxes[i]==k){
+						content += "<td>"+allData.fultonWaste[j][k]+"</td>";
+						cek = true;
+						break;
+					}
+				}
+				if(!cek){
+					content += "<td>"+errorText+"</td>";
+				}
+			}
+			var urls = allData.fultonPdf[j].split("<br>");
+			for(var i=0; i<3; i++){
+				if(urls[i]){
+					content += "<td>"+urls[i]+"</td>";
+				}
+			}
 			content += "</tr>";
 			$('#data table tbody').append(content);
 		}

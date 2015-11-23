@@ -32,6 +32,7 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 			}
 		}
 		$res['msg'] = [];
+		$res['msg_err'] = [];
 		$res['key'] = count($_SESSION);
 		foreach ($keys as $key => $value) {
 			if(strlen($value)<13){

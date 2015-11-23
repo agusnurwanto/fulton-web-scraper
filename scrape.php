@@ -12,6 +12,9 @@ $url["detail"] = "http://qpublic9.qpublic.net/ga_display_dw.php?county=ga_fulton
 $url["FultonTaxes"] = "https://www.fultoncountytaxes.org/property-taxes/TaxBill?ParcelID=";
 $url["FultonWaste"] = "https://www.fultoncountytaxes.org/solid-waste/TaxBill?ParcelID=";
 
+// https://www.fultoncountytaxes.org/property-taxes/TaxBill?ParcelID=06%20-0367-0004-109-9
+// https://www.fultoncountytaxes.org/solid-waste/TaxBill?ParcelID=14%20011000010411
+
 if(empty($_POST['getDetail'])){
 	die(json_encode(array( "error"=>1, "msg"=>"undefained param!")));
 }else{
