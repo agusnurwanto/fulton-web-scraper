@@ -241,6 +241,13 @@
 					dataType: "JSON",
 				    success:function(data) {
 				    	return data;
+				    },
+				    error:function(jqXHR, textStatus, errorThrown){
+				    	alert(textStatus);
+				    	console.log(jqXHR, textStatus, errorThrown);
+				    	setTimeout(function(){
+				    		sentIdError(j);
+				    	}, 5000);
 				    }
 			  	});
 			}
@@ -265,6 +272,13 @@
 			      	}else{
 			      		return console.log(res);
 			      	}
+			    },
+			    error:function(jqXHR, textStatus, errorThrown){
+			    	alert(textStatus);
+			    	console.log(jqXHR, textStatus, errorThrown);
+			    	setTimeout(function(){
+			    		readCsv();
+			    	}, 5000);
 			    }
 		  	});
 		}
@@ -364,6 +378,13 @@
 				      	}else{
 				      		return reject(data);
 				      	}
+				    },
+				    error:function(jqXHR, textStatus, errorThrown){
+				    	alert(textStatus);
+				    	console.log(jqXHR, textStatus, errorThrown);
+				    	setTimeout(function(){
+				    		getPage(key);
+				    	}, 5000);
 				    }
 			  	});
 			})
@@ -622,6 +643,13 @@
 				dataType: "JSON",
 			    success:function(data) {
 			    	return data;
+			    },
+			    error:function(jqXHR, textStatus, errorThrown){
+			    	alert(textStatus);
+			    	console.log(jqXHR, textStatus, errorThrown);
+			    	setTimeout(function(){
+			    		addDataToSession(j, firstScrape, key);
+			    	}, 5000);
 			    }
 		  	});
 		}
