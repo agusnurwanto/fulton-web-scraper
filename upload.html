@@ -203,7 +203,11 @@
 						sentIdError(res.key);
 						startScrape(res.key+allKeyError.length);
 					}else{
-						alert(res.msg);
+						swall({
+				    		title: "Error",
+				    		text: res.msg,
+				    		html: true
+				    	});
 						console.log(res);
 					}
 				}
@@ -243,7 +247,11 @@
 				    	return data;
 				    },
 				    error:function(jqXHR, textStatus, errorThrown){
-				    	alert(textStatus);
+				    	swall({
+				    		title: "Error",
+				    		text: textStatus,
+				    		html: true
+				    	});
 				    	console.log(jqXHR, textStatus, errorThrown);
 				    	setTimeout(function(){
 				    		sentIdError(j);
@@ -274,7 +282,11 @@
 			      	}
 			    },
 			    error:function(jqXHR, textStatus, errorThrown){
-			    	alert(textStatus);
+			    	swall({
+			    		title: "Error",
+			    		text: textStatus,
+			    		html: true
+			    	});
 			    	console.log(jqXHR, textStatus, errorThrown);
 			    	setTimeout(function(){
 			    		readCsv();
@@ -363,9 +375,9 @@
 		}
 
 		function getPage(key){
-			key = key.match(/\d/g);
-			key[1] = key[1]+' ';
-			key = key.join("");
+			// key = key.match(/\d/g);
+			// key[1] = key[1]+' ';
+			// key = key.join("");
 			return new Promise(function(resolve, reject){
 				$.ajax({
 				    url:"scrape.php",  
@@ -380,7 +392,11 @@
 				      	}
 				    },
 				    error:function(jqXHR, textStatus, errorThrown){
-				    	alert(textStatus);
+				    	swall({
+				    		title: "Error",
+				    		text: textStatus,
+				    		html: true
+				    	});
 				    	console.log(jqXHR, textStatus, errorThrown);
 				    	setTimeout(function(){
 				    		getPage(key);
@@ -645,7 +661,11 @@
 			    	return data;
 			    },
 			    error:function(jqXHR, textStatus, errorThrown){
-			    	alert(textStatus);
+			    	swall({
+			    		title: "Error",
+			    		text: textStatus,
+			    		html: true
+			    	});
 			    	console.log(jqXHR, textStatus, errorThrown);
 			    	setTimeout(function(){
 			    		addDataToSession(j, firstScrape, key);

@@ -18,12 +18,19 @@ $url["FultonWaste"] = "https://www.fultoncountytaxes.org/solid-waste/TaxBill?Par
 if(empty($_POST['getDetail'])){
 	die(json_encode(array( "error"=>1, "msg"=>"undefained param!")));
 }else{
-	$key = $_POST['key'];
+	$keys = getIdNumber($_POST['key']);
+	$key = $keys["id"];
 	$res["error"] = 0;
 	$res["key"] = $key;
-	$res["msg"]["fulton page"] = getDetail($key);
-	$res["msg"]["fulton taxes"] = getDetailFultonTaxes($key);
-	$res["msg"]["fulton waste"] = getDetailFultonWaste($key);
+	if($keys["error"]==false){
+		$res["msg"]["fulton page"] = getDetail($key);
+		$res["msg"]["fulton taxes"] = getDetailFultonTaxes($key);
+		$res["msg"]["fulton waste"] = getDetailFultonWaste($key);
+	}else{
+		$res["msg"]["fulton page"] = "";
+		$res["msg"]["fulton taxes"] = "";
+		$res["msg"]["fulton waste"] = "";
+	}
 
 	$url_base = "https://fultonfile-agusnurwanto.rhcloud.com";
 	$pdfFultonPage = $url_base."/tmp/html/".$key."_pdfFultonPage.html";
@@ -72,20 +79,20 @@ if(empty($_POST['getDetail'])){
 
 function getDetailFultonWaste($id){
 	global $url;
-	$body = request(array('url'=>$url["FultonWaste"].rawurlencode($id)."&Year="));
+	$body = request(array('url'=>$url["FultonWaste"].$id."&Year="));
 	return $body;
 }
 
 function getDetailFultonTaxes($id){
 	global $url;
 	// http://stackoverflow.com/questions/5657382/curl-php-restful-service-always-returning-false
-	$body = request(array('url'=>$url["FultonTaxes"].rawurlencode($id)."&Year="));
+	$body = request(array('url'=>$url["FultonTaxes"].$id."&Year="));
 	return $body;
 }
 
 function getDetail($id){
 	global $url;
-	$body = request(array('url'=>$url["detail"].rawurlencode($id)));
+	$body = request(array('url'=>$url["detail"].$id));
 	return $body;
 }
 
@@ -153,4 +160,27 @@ function request($option){
 	$server_output = curl_exec ($ch);
 	curl_close ($ch);
 	return $server_output;
+}
+
+function getIdNumber($id){
+	$urlAll_search = "http://qpublic9.qpublic.net/ga_alsearch_dw.php";
+	$page = request(array(
+			"url" => $urlAll_search,
+			"param" => array(
+				"BEGIN"		=> 0,
+				"INPUT"		=> $id,
+				"searchType"	=> "parcel_id",
+				"county"	=> "ga_fulton",
+				"Parcel_Search"	=> "Search By Parcel ID"
+			)
+		));
+	preg_match_all("/KEY=.........................../", $page, $output_array);
+	// echo "<pre>".print_r($output_array,1)."</pre>";
+	if(!empty($output_array[0])){
+		$id_ex = explode("KEY=", $output_array[0][0]);
+		$id = explode('">', $id_ex[1]);
+		return array("id" => $id[0], "error" => false);
+	}else{
+		return array("id" => $id, "error" => true);
+	}
 }

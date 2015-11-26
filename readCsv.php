@@ -35,11 +35,11 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 		$res['msg_err'] = [];
 		$res['key'] = count($_SESSION);
 		foreach ($keys as $key => $value) {
-			if(strlen($value)<13){
-				$res['msg_err'][] = $value;
-			}else{
+			// if(strlen($value)<13){
+			// 	$res['msg_err'][] = $value;
+			// }else{
 				$res['msg'][] = $value;
-			}
+			// }
 		}
 	}else{
 		$res = $file;
@@ -50,8 +50,9 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 }
 
 function getKey($string){
-	$number = preg_replace( '/[^0-9]/', '', $string );
-	return $number;
+	// $number = preg_replace( '/[^0-9]/', '', $string );
+	// return $number;
+	return $string;
 }
 
 
