@@ -152,6 +152,13 @@
 				<li>Include Error Parcel Numbers to spreadsheet.</li>
 			</ul>
 		</li>
+		<li>
+			Update 30 Nov 2015 : 
+			<ul>
+				<li>Fix error undifinied varible swall.</li>
+				<li>Change create file to render web scrape.</li>
+			</ul>
+		</li>
 	</ul>
 	<div id="console"></div>
 	<div id="footer">Develop by <a href="http://agus.pondokprogrammer.com" target="blank">Agus Nurwanto</a>.</div>
@@ -203,7 +210,7 @@
 						sentIdError(res.key);
 						startScrape(res.key+allKeyError.length);
 					}else{
-						swall({
+						swal({
 				    		title: "Error",
 				    		text: res.msg,
 				    		html: true
@@ -247,7 +254,7 @@
 				    	return data;
 				    },
 				    error:function(jqXHR, textStatus, errorThrown){
-				    	swall({
+				    	swal({
 				    		title: "Error",
 				    		text: textStatus,
 				    		html: true
@@ -282,7 +289,7 @@
 			      	}
 			    },
 			    error:function(jqXHR, textStatus, errorThrown){
-			    	swall({
+			    	swal({
 			    		title: "Error",
 			    		text: textStatus,
 			    		html: true
@@ -318,6 +325,8 @@
 				    return getPage(key);
 			  	})
 			  	.then(function(res){
+			  		if(!res)
+			  			return Promise.reject();
 			  		return new Promise(function(resolve, reject){
 				  		parsingData($.parseHTML(res.msg["fulton page"]
 				  			.replace(/<img[^>]*>/g,"")
@@ -331,6 +340,8 @@
 					});
 			  	})
 			  	.then(function(res){
+			  		if(!res)
+			  			return Promise.reject();
 			  		return new Promise(function(resolve, reject){
 				  		parsingDataTaxes($.parseHTML(res.msg["fulton taxes"]
 				  			.replace(/<img[^>]*>/g,"")
@@ -343,6 +354,8 @@
 				  	});
 			  	})
 			  	.then(function(res){
+			  		if(!res)
+			  			return Promise.reject();
 			  		return new Promise(function(resolve, reject){
 				  		parsingDataWaste($.parseHTML(res.msg["fulton waste"]
 				  			.replace(/<img[^>]*>/g,"")
@@ -374,7 +387,7 @@
 			}, Promise.resolve());
 		}
 
-		function getPage(key){
+		function getPage(key, i){
 			// key = key.match(/\d/g);
 			// key[1] = key[1]+' ';
 			// key = key.join("");
@@ -392,15 +405,22 @@
 				      	}
 				    },
 				    error:function(jqXHR, textStatus, errorThrown){
-				    	swall({
+				    	swal({
 				    		title: "Error",
 				    		text: textStatus,
 				    		html: true
 				    	});
 				    	console.log(jqXHR, textStatus, errorThrown);
-				    	setTimeout(function(){
-				    		getPage(key);
-				    	}, 5000);
+				    	if(!i){
+				    		i = 0;
+				    	}
+				    	if(i<=10){
+					    	setTimeout(function(){
+					    		getPage(key, i);
+					    	}, 5000);
+					    }else{
+					    	return reject();
+					    }
 				    }
 			  	});
 			})
@@ -661,7 +681,7 @@
 			    	return data;
 			    },
 			    error:function(jqXHR, textStatus, errorThrown){
-			    	swall({
+			    	swal({
 			    		title: "Error",
 			    		text: textStatus,
 			    		html: true

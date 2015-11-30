@@ -12,8 +12,48 @@ $url["detail"] = "http://qpublic9.qpublic.net/ga_display_dw.php?county=ga_fulton
 $url["FultonTaxes"] = "https://www.fultoncountytaxes.org/property-taxes/TaxBill?ParcelID=";
 $url["FultonWaste"] = "https://www.fultoncountytaxes.org/solid-waste/TaxBill?ParcelID=";
 
+// example url
 // https://www.fultoncountytaxes.org/property-taxes/TaxBill?ParcelID=06%20-0367-0004-109-9
 // https://www.fultoncountytaxes.org/solid-waste/TaxBill?ParcelID=14%20011000010411
+
+if(!empty($_GET["parcel_id"]) && !empty($_GET["type"])){
+	$key = urlencode($_GET["parcel_id"]);
+	if($_GET["type"] == "ga_display_dw"){
+		echo render_detail($key);
+	}else if($_GET["type"] == "property-taxes"){
+		header("Content-type:application/pdf");
+		echo render_property_taxes($key);
+	}else if($_GET["type"] == "solid-waste"){
+		header("Content-type:application/pdf");
+		echo render_solid_waste($key);
+	}
+	die();
+}
+
+function render_detail($key){
+	$data = getDetail($key);
+	return $data;
+}
+
+function render_property_taxes($key){
+	$data = getDetailFultonTaxes($key);
+
+	// http://www.sitepoint.com/convert-html-to-pdf-with-dompdf/
+	$dompdf = new DOMPDF();
+	$dompdf->load_html($data);
+	$dompdf->render();
+	$output = $dompdf->output();
+	return $output;
+}
+
+function render_solid_waste($key){
+	$data = getDetailFultonWaste($key);
+	$dompdf = new DOMPDF();
+	$dompdf->load_html($data);
+	$dompdf->render();
+	$output = $dompdf->output();
+	return $output;
+}
 
 if(empty($_POST['getDetail'])){
 	die(json_encode(array( "error"=>1, "msg"=>"undefained param!")));
@@ -32,47 +72,11 @@ if(empty($_POST['getDetail'])){
 		$res["msg"]["fulton waste"] = "";
 	}
 
-	$url_base = "https://fultonfile-agusnurwanto.rhcloud.com";
-	$pdfFultonPage = $url_base."/tmp/html/".$key."_pdfFultonPage.html";
-	$pdfFultonTaxes = $url_base."/tmp/pdf/".$key."_pdfFultonTaxes.pdf";
-	$pdfFultonWaste = $url_base."/tmp/pdf/".$key."_pdfFultonWaste.pdf";
+	$url_base = "//" . $_SERVER['HTTP_HOST']."/scrape.php";
+	$pdfFultonPage = $url_base."?parcel_id=".$key."&type=ga_display_dw";
+	$pdfFultonTaxes = $url_base."?parcel_id=".$key."&type=property-taxes";
+	$pdfFultonWaste = $url_base."?parcel_id=".$key."&type=solid-waste";
 	$res["msg"]["pdf"] = '<a href="'.$pdfFultonPage.'" target="blank">'.$pdfFultonPage.'</a><br><a href="'.$pdfFultonTaxes.'" target="blank">'.$pdfFultonTaxes.'</a><br><a href="'.$pdfFultonWaste.'" target="blank">'.$pdfFultonWaste.'</a>';
-	
-	// http://www.sitepoint.com/convert-html-to-pdf-with-dompdf/
-	$dompdf = new DOMPDF();
-	$dompdf->load_html($res["msg"]["fulton taxes"]);
-	$dompdf->render();
-	$output = $dompdf->output();
-	request(array(
-		"url"	=> $url_base."/createFolders.php", 
-		"param"	=> array(
-			"folder"	=> "pdf",
-			"file"		=> $key."_pdfFultonTaxes.pdf",
-			"output"	=> $output
-		)
-	));
-
-	$dompdf = new DOMPDF();
-	$dompdf->load_html($res["msg"]["fulton waste"]);
-	$dompdf->render();
-	$output = $dompdf->output();
-	request(array(
-		"url"	=> $url_base."/createFolders.php", 
-		"param"	=> array(
-			"folder"	=> "pdf",
-			"file"		=> $key."_pdfFultonWaste.pdf",
-			"output"	=> $output
-		)
-	));
-
-	request(array(
-		"url"	=> $url_base."/createFolders.php", 
-		"param"	=> array(
-			"folder"	=> "html",
-			"file"		=> $key."_pdfFultonPage.html",
-			"output"	=> $res["msg"]["fulton page"]
-		)
-	));
 
 	echo json_encode($res);
 }
