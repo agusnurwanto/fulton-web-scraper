@@ -3,6 +3,7 @@ session_start();
 
 require __DIR__ . '/vendor/autoload.php';
 use League\Csv\Reader;
+define("RESULT_FILE", "database/resultScrapping.json");
 
 // echo "<pre>". print_r($_FILES,1) ."</pre>";
 // die();
@@ -24,8 +25,9 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 				$keys[] = $key;
 			}
 		}
-		foreach ($_SESSION as $k => $v) {
-			$key = getKey($v["parselNumber"]);
+		$allData = readResultFile();
+		foreach ($allData as $k => $v) {
+			$key = getKey($v->parselNumber);
 			$cek = array_search($key, $keys);
 			if($cek>=0){
 				unset($keys[$cek]);
@@ -33,7 +35,7 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 		}
 		$res['msg'] = [];
 		$res['msg_err'] = [];
-		$res['key'] = count($_SESSION);
+		$res['key'] = count($allData);
 		foreach ($keys as $key => $value) {
 			// if(strlen($value)<13){
 			// 	$res['msg_err'][] = $value;
@@ -47,6 +49,18 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 }else{
 	$res["error"] = 1;
 	$res["msg"] = $_FILES;
+}
+
+function readResultFile(){
+	if(!file_exists(RESULT_FILE)){
+		file_put_contents(RESULT_FILE, json_encode(array()));
+	}
+	$oldData = file_get_contents(RESULT_FILE);
+	$data = array();
+	if(!empty($oldData)){
+		$data = json_decode($oldData);
+	}
+	return $data;
 }
 
 function getKey($string){

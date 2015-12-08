@@ -2,13 +2,41 @@
 session_start();
 
 $data = json_decode(file_get_contents('php://input'), true);
+define("RESULT_FILE", "database/resultScrapping.json");
+
+function appendFile($options){
+	if(!empty($options["content"])){
+		$data = readResultFile();
+		foreach ($options["content"] as $k => $v) {
+			$data->{$k} = $v;
+		}
+		file_put_contents(RESULT_FILE, json_encode($data));
+	}
+}
+
+function readResultFile(){
+	if(!file_exists(RESULT_FILE)){
+		file_put_contents(RESULT_FILE, json_encode(array()));
+	}
+	$oldData = file_get_contents(RESULT_FILE);
+	$data = array();
+	if(!empty($oldData)){
+		$data = json_decode($oldData);
+	}
+	return $data;
+}
+
+function clearFile(){
+	file_put_contents(RESULT_FILE, json_encode(array()));
+}
 
 // if(!empty($data['firstScrape'])){
 if(!empty($_GET['delete'])){
-	$_SESSION = [];
+	clearFile();
 }
 
 if(!empty($data["setSession"])){
+	$allNewData = array();
 	if(!empty($data['action']) && $data['action']=="IdError"){
 		$oldKey = $data["key"];
 		foreach ($data["ids"] as $k => $v) {
@@ -57,21 +85,21 @@ if(!empty($data["setSession"])){
 			$fultonPage["Grantee"] = "";
 			$fultonPage["Grantor"] = "";
 			$key = $oldKey+$k;
-			$_SESSION["key_".$key]["fultonPage"] = $fultonPage;
-			$_SESSION["key_".$key]["fultonTaxes"] = array();
-			$_SESSION["key_".$key]["fultonWaste"] = array();
-			$_SESSION["key_".$key]["fultonPdf"] = "";
-			$_SESSION["key_".$key]["parselNumber"] = $v;
+			$allNewData["key_".$key]["fultonPage"] = $fultonPage;
+			$allNewData["key_".$key]["fultonTaxes"] = array();
+			$allNewData["key_".$key]["fultonWaste"] = array();
+			$allNewData["key_".$key]["fultonPdf"] = "";
+			$allNewData["key_".$key]["parselNumber"] = $v;
 		}
 	}else{
 		$key = $data["key"];
-		$_SESSION["key_".$key]["fultonPage"] = $data["fultonPage"];
-		$_SESSION["key_".$key]["fultonTaxes"] = $data["fultonTaxes"];
-		$_SESSION["key_".$key]["fultonWaste"] = $data["fultonWaste"];
-		$_SESSION["key_".$key]["fultonPdf"] = $data["fultonPdf"];
-		$_SESSION["key_".$key]["parselNumber"] = $data["parselNumber"];
+		$allNewData["key_".$key]["fultonPage"] = $data["fultonPage"];
+		$allNewData["key_".$key]["fultonTaxes"] = $data["fultonTaxes"];
+		$allNewData["key_".$key]["fultonWaste"] = $data["fultonWaste"];
+		$allNewData["key_".$key]["fultonPdf"] = $data["fultonPdf"];
+		$allNewData["key_".$key]["parselNumber"] = $data["parselNumber"];
 	}
-	// echo "<pre>".print_r($_SESSION,1)."</pre>";
+	appendFile(array( "content"=>$allNewData ));
 	die(json_encode(array("error"=>0)));
 }
 
@@ -120,9 +148,11 @@ if(!empty($_GET["download"])){
 		</script>";
 }
 
+$allData = readResultFile();
+//echo "<pre>".print_r($allData,1)."</pre>";
 $tr = "";
 $th = "";
-if(empty($_SESSION)){
+if(empty($allData)){
 	$tr = "
 	<tr>
 		<td>Data is empty!</td>
@@ -168,9 +198,9 @@ if(empty($_SESSION)){
 	$i = 1;
 	$th .= "<tr><th>No</th>";
 	$errorText = "Error scraping";
-	foreach ($_SESSION as $k => $v) {
+	foreach ($allData as $k => $v) {
 		$tr .= "<tr><td style='text-align:center;'>$i</td>";
-		foreach ($v["fultonPage"] as $key => $value) {
+		foreach ($v->fultonPage as $key => $value) {
 			if($i==1){
 				$th .= "<th>".str_replace("_", " ", $key)."</th>";
 			}
@@ -198,7 +228,7 @@ if(empty($_SESSION)){
 		}
 		foreach ($headersFultonTaxes as $val) {
 			$cek = false;
-			foreach ($v["fultonTaxes"] as $key => $value) {
+			foreach ($v->fultonTaxes as $key => $value) {
 				if($val==$key){
 					$tr .= "<td>".$value."</td>";
 					$cek = true;
@@ -211,7 +241,7 @@ if(empty($_SESSION)){
 		}
 		foreach ($headersWasteTaxes as $val) {
 			$cek = false;
-			foreach ($v["fultonWaste"] as $key => $value) {
+			foreach ($v->fultonWaste as $key => $value) {
 				if($val==$key){
 					$tr .= "<td>".$value."</td>";
 					$cek = true;
@@ -222,7 +252,7 @@ if(empty($_SESSION)){
 				$tr .= "<td>".$errorText."</td>";
 			}
 		}
-		$urls = explode('<br>', $v['fultonPdf']);
+		$urls = explode('<br>', $v->fultonPdf);
 		for($j=0; $j<3; $j++){
 			if(!empty($urls[$j])){
 				$tr .= "<td>".$urls[$j]."</td>";
