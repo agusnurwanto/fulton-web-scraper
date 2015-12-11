@@ -2,7 +2,7 @@
 session_start();
 
 $data = json_decode(file_get_contents('php://input'), true);
-define("RESULT_FILE", "database/resultScrapping.json");
+define("RESULT_FILE", "https://fultonfile-agusnurwanto.rhcloud.com");
 
 function appendFile($options){
 	if(!empty($options["content"])){
@@ -10,16 +10,40 @@ function appendFile($options){
 		foreach ($options["content"] as $k => $v) {
 			$data->{$k} = $v;
 		}
-		file_put_contents(RESULT_FILE, json_encode($data));
+		request(array(
+			"url"	=> RESULT_FILE."/createFolders.php", 
+			"param"	=> array(
+				"folder"	=> "json",
+				"file"		=> "resultScrapping.json",
+				"output"	=> json_encode($data)
+			)
+		));
 	}
 }
 
-function readResultFile(){
-	if(!file_exists(RESULT_FILE)){
-		file_put_contents(RESULT_FILE, json_encode(array()));
+function request($option){
+	$url = $option['url'];
+	$ch = curl_init();
+
+	curl_setopt($ch, CURLOPT_URL,$url);
+	if(!empty($option['param'])){
+		$param = http_build_query($option['param']);
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $param);
 	}
-	$oldData = file_get_contents(RESULT_FILE);
-	$data = array();
+  	curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.89 Safari/537.36");
+  	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+  	curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+	$server_output = curl_exec ($ch);
+	curl_close ($ch);
+	return $server_output;
+}
+
+function readResultFile(){
+	$oldData = @file_get_contents(RESULT_FILE."/tmp/json/resultScrapping.json");
+	$data = json_decode("{}");
 	if(!empty($oldData)){
 		$data = json_decode($oldData);
 	}
@@ -27,7 +51,14 @@ function readResultFile(){
 }
 
 function clearFile(){
-	file_put_contents(RESULT_FILE, json_encode(array()));
+	request(array(
+		"url"	=> RESULT_FILE."/createFolders.php", 
+		"param"	=> array(
+			"folder"	=> "json",
+			"file"		=> "resultScrapping.json",
+			"output"	=> "{}"
+		)
+	));
 }
 
 // if(!empty($data['firstScrape'])){

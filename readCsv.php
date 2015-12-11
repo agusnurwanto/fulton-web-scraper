@@ -3,7 +3,7 @@ session_start();
 
 require __DIR__ . '/vendor/autoload.php';
 use League\Csv\Reader;
-define("RESULT_FILE", "database/resultScrapping.json");
+define("RESULT_FILE", "https://fultonfile-agusnurwanto.rhcloud.com");
 
 // echo "<pre>". print_r($_FILES,1) ."</pre>";
 // die();
@@ -52,11 +52,8 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 }
 
 function readResultFile(){
-	if(!file_exists(RESULT_FILE)){
-		file_put_contents(RESULT_FILE, json_encode(array()));
-	}
-	$oldData = file_get_contents(RESULT_FILE);
-	$data = array();
+	$oldData = @file_get_contents(RESULT_FILE."/tmp/json/resultScrapping.json");
+	$data = json_decode("{}");
 	if(!empty($oldData)){
 		$data = json_decode($oldData);
 	}
@@ -64,9 +61,10 @@ function readResultFile(){
 }
 
 function getKey($string){
-	// $number = preg_replace( '/[^0-9]/', '', $string );
-	// return $number;
-	return $string;
+	$number = preg_replace( '/\ /', '+', $string );
+	$number = preg_replace( '/-/', '', $number );
+	return $number;
+	// return $string;
 }
 
 
