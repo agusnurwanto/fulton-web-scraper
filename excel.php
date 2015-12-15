@@ -150,7 +150,8 @@ if(!empty($_GET["download"])){
 
 function readResultFile(){
 	global $pdo;
-	$query = $pdo->prepare('SELECT * FROM fultonfile GROUP BY parselNumber LIMIT 0,10');
+	$query = $pdo->prepare('SELECT * FROM fultonfile GROUP BY parselNumber');
+	// $query = $pdo->prepare('SELECT * FROM fultonfile GROUP BY parselNumber LIMIT 0,10');
     $query->execute();
     $result = $query->fetchAll();
     $allData = array();
@@ -167,7 +168,7 @@ function readResultFile(){
 }
 
 $allData = readResultFile();
-echo "<pre>".print_r($allData,1)."</pre>";
+// echo "<pre>".print_r($allData,1)."</pre>";
 $tr = "";
 $th = "";
 if(empty($allData)){
