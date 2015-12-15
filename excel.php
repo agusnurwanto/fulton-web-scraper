@@ -1,69 +1,38 @@
 <?php
 session_start();
 
+require __DIR__ . '/vendor/autoload.php';
+use SimpleCrud\SimpleCrud;
+$pdo = new PDO('mysql:host=www.db4free.net;port=3306;dbname=fultonfile', 'fultonfile', 'qweasd123qweasd123');
+
 $data = json_decode(file_get_contents('php://input'), true);
 define("RESULT_FILE", "https://fultonfile-agusnurwanto.rhcloud.com");
 
 function appendFile($options){
 	if(!empty($options["content"])){
-		$data = readResultFile();
+		global $pdo;
+		$db = new SimpleCrud($pdo);
+
+		$data = array();
 		foreach ($options["content"] as $k => $v) {
-			$data->{$k} = $v;
+			$data["fultonPage"] = json_encode($v["fultonPage"]);
+			$data["fultonTaxes"] = json_encode($v["fultonTaxes"]);
+			$data["fultonWaste"] = json_encode($v["fultonWaste"]);
+			$data["fultonPdf"] = $v["fultonPdf"];
+			$data["parselNumber"] = $v["parselNumber"];
 		}
-		request(array(
-			"url"	=> RESULT_FILE."/createFolders.php", 
-			"param"	=> array(
-				"folder"	=> "json",
-				"file"		=> "resultScrapping.json",
-				"output"	=> json_encode($data)
-			)
-		));
+		$db->fultonfile->insert()
+			->data($data)
+			->run();
 	}
-}
-
-function request($option){
-	$url = $option['url'];
-	$ch = curl_init();
-
-	curl_setopt($ch, CURLOPT_URL,$url);
-	if(!empty($option['param'])){
-		$param = http_build_query($option['param']);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $param);
-	}
-  	curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.89 Safari/537.36");
-  	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
-  	curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-	$server_output = curl_exec ($ch);
-	curl_close ($ch);
-	return $server_output;
-}
-
-function readResultFile(){
-	$oldData = @file_get_contents(RESULT_FILE."/tmp/json/resultScrapping.json");
-	$data = json_decode("{}");
-	if(!empty($oldData)){
-		$data = json_decode($oldData);
-	}
-	return $data;
-}
-
-function clearFile(){
-	request(array(
-		"url"	=> RESULT_FILE."/createFolders.php", 
-		"param"	=> array(
-			"folder"	=> "json",
-			"file"		=> "resultScrapping.json",
-			"output"	=> "{}"
-		)
-	));
 }
 
 // if(!empty($data['firstScrape'])){
 if(!empty($_GET['delete'])){
-	clearFile();
+	global $pdo;
+	$db = new SimpleCrud($pdo);
+
+	$db->post->delete()->all();
 }
 
 if(!empty($data["setSession"])){
@@ -179,8 +148,26 @@ if(!empty($_GET["download"])){
 		</script>";
 }
 
+function readResultFile(){
+	global $pdo;
+	$query = $pdo->prepare('SELECT * FROM fultonfile GROUP BY parselNumber LIMIT 0,10');
+    $query->execute();
+    $result = $query->fetchAll();
+    $allData = array();
+    foreach ($result as $k => $v) {
+    	$allData[$k] = array(
+    			"fultonPage" 	=> json_decode($v["fultonPage"]),
+    			"fultonTaxes" 	=> json_decode($v["fultonTaxes"]),
+    			"fultonWaste" 	=> json_decode($v["fultonWaste"]),
+    			"fultonPdf" 	=> $v["fultonPdf"],
+    			"parselNumber" 	=> $v["parselNumber"],
+    		);
+    }
+	return $allData;
+}
+
 $allData = readResultFile();
-//echo "<pre>".print_r($allData,1)."</pre>";
+echo "<pre>".print_r($allData,1)."</pre>";
 $tr = "";
 $th = "";
 if(empty($allData)){
@@ -231,7 +218,7 @@ if(empty($allData)){
 	$errorText = "Error scraping";
 	foreach ($allData as $k => $v) {
 		$tr .= "<tr><td style='text-align:center;'>$i</td>";
-		foreach ($v->fultonPage as $key => $value) {
+		foreach ($v["fultonPage"] as $key => $value) {
 			if($i==1){
 				$th .= "<th>".str_replace("_", " ", $key)."</th>";
 			}
@@ -259,7 +246,7 @@ if(empty($allData)){
 		}
 		foreach ($headersFultonTaxes as $val) {
 			$cek = false;
-			foreach ($v->fultonTaxes as $key => $value) {
+			foreach ($v["fultonTaxes"] as $key => $value) {
 				if($val==$key){
 					$tr .= "<td>".$value."</td>";
 					$cek = true;
@@ -272,7 +259,7 @@ if(empty($allData)){
 		}
 		foreach ($headersWasteTaxes as $val) {
 			$cek = false;
-			foreach ($v->fultonWaste as $key => $value) {
+			foreach ($v["fultonWaste"] as $key => $value) {
 				if($val==$key){
 					$tr .= "<td>".$value."</td>";
 					$cek = true;
@@ -283,7 +270,7 @@ if(empty($allData)){
 				$tr .= "<td>".$errorText."</td>";
 			}
 		}
-		$urls = explode('<br>', $v->fultonPdf);
+		$urls = explode('<br>', $v["fultonPdf"]);
 		for($j=0; $j<3; $j++){
 			if(!empty($urls[$j])){
 				$tr .= "<td>".$urls[$j]."</td>";

@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "403cc19cb36d61578c4722a2851aa6cc",
-    "content-hash": "fe9deb38afd7fcec6e628359ddaf068a",
+    "hash": "a07b6d5f98e5932f999c3b1e552d1c28",
+    "content-hash": "28888b062dcaf7a47d5d6ea1ed2e129c",
     "packages": [
         {
             "name": "dompdf/dompdf",
@@ -138,6 +138,50 @@
             "description": "A library to read, parse, export and make subsets of different types of font files.",
             "homepage": "https://github.com/PhenX/php-font-lib",
             "time": "2014-02-01 15:22:28"
+        },
+        {
+            "name": "simple-crud/simple-crud",
+            "version": "v5.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/oscarotero/simple-crud.git",
+                "reference": "bcfab56f18063512cfab1fc1bd74faa4ae1ad88e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/oscarotero/simple-crud/zipball/bcfab56f18063512cfab1fc1bd74faa4ae1ad88e",
+                "reference": "bcfab56f18063512cfab1fc1bd74faa4ae1ad88e",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SimpleCrud\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Oscar Otero",
+                    "email": "oom@oscarotero.com",
+                    "homepage": "http://oscarotero.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Create/Read/Update/Delete easily",
+            "homepage": "https://github.com/oscarotero/simple-crud",
+            "keywords": [
+                "crud",
+                "mysql",
+                "sqlite"
+            ],
+            "time": "2015-12-09 19:13:18"
         }
     ],
     "packages-dev": [],

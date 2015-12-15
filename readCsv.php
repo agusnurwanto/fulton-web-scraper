@@ -3,6 +3,9 @@ session_start();
 
 require __DIR__ . '/vendor/autoload.php';
 use League\Csv\Reader;
+use SimpleCrud\SimpleCrud;
+
+$pdo = new PDO('mysql:host=www.db4free.net;port=3306;dbname=fultonfile', 'fultonfile', 'qweasd123qweasd123');
 define("RESULT_FILE", "https://fultonfile-agusnurwanto.rhcloud.com");
 
 // echo "<pre>". print_r($_FILES,1) ."</pre>";
@@ -27,7 +30,7 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 		}
 		$allData = readResultFile();
 		foreach ($allData as $k => $v) {
-			$key = getKey($v->parselNumber);
+			$key = getKey($v);
 			$cek = array_search($key, $keys);
 			if($cek>=0){
 				unset($keys[$cek]);
@@ -52,12 +55,11 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 }
 
 function readResultFile(){
-	$oldData = @file_get_contents(RESULT_FILE."/tmp/json/resultScrapping.json");
-	$data = json_decode("{}");
-	if(!empty($oldData)){
-		$data = json_decode($oldData);
-	}
-	return $data;
+	global $pdo;
+	$db = new SimpleCrud($pdo);
+	$allData = $db->fultonfile->select()->all();
+	
+	return $allData->parselNumber;
 }
 
 function getKey($string){
