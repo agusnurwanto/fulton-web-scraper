@@ -14,19 +14,30 @@ define("RESULT_FILE", "https://fultonfile-agusnurwanto.rhcloud.com");
 $res = array( "error" => 0 );
 if((!empty($_POST['action']) && $_POST['action']=="read_csv") 
 	|| (!empty($_FILES) && $_FILES['async-upload']["type"]=="text/csv")){
-	$file = handle_upload();
+	$pathResultReadCSV = __DIR__. "/uploads/resultReadCSV.json";
+	$file = array();
+	$cekFile = true;
+	if(!file_exists($pathResultReadCSV)){
+		$file = handle_upload();
+		$cekFile = false;
+	}
 	if(empty($file["error"])){
-		$csv = Reader::createFromPath($file["file"]);
-		$csvData = $csv->setOffset(1)->fetchAll();
-		$keys = [];
-		foreach ($csvData as $k => $v) {
-			if(!empty($v[1])){
-				$key = getKey($v[1]);
-				$keys[] = $key;
-			}else if(!empty($v[0])){
-				$key = getKey($v[0]);
-				$keys[] = $key;
+		if(empty($cekFile)){
+			$csv = Reader::createFromPath($file["file"]);
+			$csvData = $csv->setOffset(1)->fetchAll();
+			$keys = [];
+			foreach ($csvData as $k => $v) {
+				if(!empty($v[1])){
+					$key = getKey($v[1]);
+					$keys[] = $key;
+				}else if(!empty($v[0])){
+					$key = getKey($v[0]);
+					$keys[] = $key;
+				}
 			}
+		}else{
+			$data = file_get_contents($pathResultReadCSV);
+			$keys = json_decode($data);
 		}
 		$allData = readResultFile();
 		foreach ($allData as $k => $v) {
@@ -45,6 +56,11 @@ if((!empty($_POST['action']) && $_POST['action']=="read_csv")
 			// }else{
 				$res['msg'][] = $value;
 			// }
+		}
+		if(!empty($keys)){
+			file_put_contents($pathResultReadCSV, json_encode($keys));
+		}else{
+			unlink($pathResultReadCSV);
 		}
 	}else{
 		$res = $file;

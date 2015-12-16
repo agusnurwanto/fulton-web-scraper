@@ -72,7 +72,8 @@ if(empty($_POST['getDetail'])){
 		$res["msg"]["fulton waste"] = "";
 	}
 
-	$url_base = "//" . $_SERVER['HTTP_HOST']."/scrape.php";
+	// $url_base = "//" . $_SERVER['HTTP_HOST']."/scrape.php";
+	$url_base = "//fultonscraper.herokuapp.com/scrape.php";
 	$pdfFultonPage = $url_base."?parcel_id=".$key."&type=ga_display_dw";
 	$pdfFultonTaxes = $url_base."?parcel_id=".$key."&type=property-taxes";
 	$pdfFultonWaste = $url_base."?parcel_id=".$key."&type=solid-waste";
